@@ -1,7 +1,7 @@
 export default interface IdentityProvider {
   addReadTokenRoleOnCreate?: boolean,
   alias?: string,
-  config?: Map<string, string>,
+  config?: object,
   displayName?: string,
   enabled?: boolean,
   firstBrokerLoginFlowAlias?: string,

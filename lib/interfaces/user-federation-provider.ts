@@ -1,6 +1,6 @@
 export default interface UserFederationProvider {
   changedSyncPeriod?: number,
-  config?: Map<string, string>,
+  config?: object,
   displayName?: string,
   fullSyncPeriod?: number,
   id?: string,

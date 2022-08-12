@@ -13,9 +13,13 @@ class Realms {
   async import(data: Realm): Promise<boolean> {
     const url = `/`;
     return await this.httpClient
-      .post(url, data)
+      .post(url, JSON.stringify(data))
       .then((response) => {
-        return true;
+        if (response.status === 201) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 

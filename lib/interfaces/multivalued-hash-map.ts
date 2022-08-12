@@ -1,4 +1,4 @@
-export default interface MultivaluedHashMap<K, V> {
+export default interface MultivaluedHashMap {
   empty?: boolean,
   loadFactor?: number,
   threshold?: number,

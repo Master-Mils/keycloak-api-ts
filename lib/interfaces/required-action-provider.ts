@@ -1,6 +1,6 @@
 export default interface RequiredActionProvider {
   alias?: string,
-  config?: Map<string, string>,
+  config?: object,
   defaultAction?: boolean,
   enabled?: boolean,
   name?: string,

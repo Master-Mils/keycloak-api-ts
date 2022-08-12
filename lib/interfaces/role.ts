@@ -1,7 +1,7 @@
 import RoleComposites from './role-composites';
 
 export default interface Role {
-  attributes?: Map<string, string>,
+  attributes?: object,
   clientRole?: boolean,
   composite?: boolean,
   composites?: RoleComposites,

@@ -2,7 +2,7 @@ import Resource from './resource';
 import Scope from './scope';
 
 export default interface Policy {
-  config?: Map<string, string>,
+  config?: object,
   decisionStrategy?: 'AFFIRMATIVE' | 'UNANIMOUS' | 'CONSENSUS',
   description?: string,
   id?: string,

@@ -1,7 +1,7 @@
 export default interface Group {
-  access?: Map<string, string>,
-  attributes?: Map<string, string>,
-  clientRoles?: Map<string, string>,
+  access?: object,
+  attributes?: object,
+  clientRoles?: object,
   id?: string,
   name?: string,
   path?: string,

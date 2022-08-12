@@ -14,12 +14,16 @@ class Flows {
     this.executions = new Executions(this.httpClient);
   }
 
-  async create(realm: string, data: AuthenticationFlow): Promise<string> {
+  async create(realm: string, data: AuthenticationFlow): Promise<boolean> {
     const url = `/${realm}/authentication/flows`;
     return await this.httpClient
       .post(url, data)
       .then((response) => {
-        return JSON.parse(response.data);
+        if (response.status === 201) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 

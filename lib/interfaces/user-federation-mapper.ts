@@ -1,5 +1,5 @@
 export default interface UserFederationMapper {
-  config?: Map<string, string>,
+  config?: object,
   federationMapperType?: string,
   federationProviderDisplayName?: string,
   id?: string,

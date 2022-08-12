@@ -1,4 +1,4 @@
 export default interface RoleComposites {
-  client?: Map<string, string>,
+  client?: object,
   realm?: string[]
 }

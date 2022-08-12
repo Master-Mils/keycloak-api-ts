@@ -37,7 +37,11 @@ class Users {
     return await this.httpClient
       .post(url, data)
       .then((response) => {
-        return true;
+        if (response.status === 201) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 

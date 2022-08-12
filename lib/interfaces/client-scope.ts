@@ -1,7 +1,7 @@
 import ProtocolMapper from './protocol-mapper';
 
 export default interface ClientScope {
-  attributes?: Map<string, string>,
+  attributes?: object,
   description?: string,
   id?: string,
   name?: string,

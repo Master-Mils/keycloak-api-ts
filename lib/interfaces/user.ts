@@ -3,10 +3,10 @@ import Credential from './credential';
 import FederatedIdentity from './federated-identity';
 
 export default interface User {
-  access?: Map<string, string>,
-  attributes?: Map<string, string>,
+  access?: object,
+  attributes?: object,
   clientConsents?: UserConsent[],
-  clientRoles?: Map<string, string>,
+  clientRoles?: object,
   createdTimestamp?: number,
   credentials?: Credential[],
   disableableCredentialTypes?: string[],

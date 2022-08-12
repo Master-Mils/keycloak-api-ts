@@ -1,5 +1,5 @@
 export default interface IdentityProviderMapper {
-  config?: Map<string, string>,
+  config?: object,
   id?: string,
   identityProviderAlias?: string,
   identityProviderMapper?: string,

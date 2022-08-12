@@ -1,5 +1,5 @@
 export default interface AuthenticatorConfig {
   alias?: string,
-  config?: Map<string, string>
+  config?: object
   id?: string
 }

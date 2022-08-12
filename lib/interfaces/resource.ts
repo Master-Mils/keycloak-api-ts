@@ -2,7 +2,7 @@ import Scope from './scope';
 
 export default interface Resource {
   id?: string,
-  attributes?: Map<string, string>,
+  attributes?: object,
   displayName?: string,
   icon_uri?: string,
   name?: string,

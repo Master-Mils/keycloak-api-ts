@@ -18,12 +18,16 @@ export default class Clients {
     this.httpClient = httpClient;
   }
 
-  async create(realm: string, data: Client): Promise<Client> {
+  async create(realm: string, data: Client): Promise<boolean> {
     const url = `/${realm}/clients`;
     return await this.httpClient
       .post(url, data)
       .then((response) => {
-        return JSON.parse(response.data);
+        if (response.status === 201) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 

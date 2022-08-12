@@ -1,6 +1,6 @@
 
 export default interface ProtocolMapper {
-  config?: Map<string, string>,
+  config?: object,
   id?: string,
   name?: string,
   protocol?: string,

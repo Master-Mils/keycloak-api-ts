@@ -2,11 +2,11 @@ import ResourceServer from './resource-server'
 import ProtocolMapper from './protocol-mapper'
 
 export default interface Client {
-  access?: Map<string, string>,
+  access?: object,
   adminUrl?: string,
   alwaysDisplayInConsole?: boolean,
-  attributes?: Map<string, string>,
-  authenticationFlowBindingOverrides?: Map<string, string>,
+  attributes?: object,
+  authenticationFlowBindingOverrides?: object,
   authorizationServicesEnabled?: boolean,
   authorizationSettings?: ResourceServer,
   baseUrl?: string,
@@ -32,7 +32,7 @@ export default interface Client {
   protocolMappers?: ProtocolMapper[],
   publicClient?: boolean,
   redirectUris?: string[],
-  registeredNodes?: Map<string, string>,
+  registeredNodes?: object,
   registrationAccessToken?: string,
   rootUrl?: string,
   secret?: string,
