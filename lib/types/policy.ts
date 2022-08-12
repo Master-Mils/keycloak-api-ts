@@ -6,7 +6,7 @@ export default interface Policy {
   decisionStrategy?: 'AFFIRMATIVE' | 'UNANIMOUS' | 'CONSENSUS',
   description?: string,
   id?: string,
-  logic?: 'POSITIVE', 'NEGATIVE',
+  logic?: 'POSITIVE' | 'NEGATIVE',
   name?: string,
   owner?: string,
   policies?: string[],

@@ -1,6 +1,6 @@
 import { Axios } from "axios";
 
-import AuthenticationFlow from "../interfaces/authentication-flow";
+import AuthenticationFlow from "../types/authentication-flow";
 
 import Executions from './executions'
 

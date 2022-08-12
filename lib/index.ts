@@ -1,11 +1,11 @@
 import axios, { Axios } from 'axios';
 
-import ServerSettings from './lib/interfaces/server-settings';
+import ServerSettings from './types/server-settings';
 
-import Authentication from './lib/authentication';
-import Clients from './lib/clients';
-import Realms from './lib/realms';
-import Users from './lib/users';
+import Authentication from './authentication';
+import Clients from './clients';
+import Realms from './realms';
+import Users from './users';
 
 class KeycloakAPI {
 

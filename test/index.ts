@@ -1,6 +1,6 @@
-import KeycloakAPI from '../index';
+import KeycloakAPI from '../lib/index';
 
-import ServerSettings from '../lib/interfaces/server-settings';
+import ServerSettings from '../lib/types/server-settings';
 
 import * as dotenv from 'dotenv';
 

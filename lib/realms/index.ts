@@ -1,6 +1,6 @@
 import { Axios } from "axios";
 
-import Realm from "../interfaces/realm"
+import Realm from "../types/realm"
 
 class Realms {
 

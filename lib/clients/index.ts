@@ -1,6 +1,6 @@
 import { Axios } from "axios";
 
-import Client from '../interfaces/client'
+import Client from '../types/client'
 
 interface ClientListQueryParameters {
   clientId?: string,
@@ -43,7 +43,7 @@ export default class Clients {
 
   async list(realm: string, options?: ClientListQueryParameters): Promise<Client[]> {
 
-    let queryParams = options ?
+    const queryParams = options ?
       Object
         .entries(options)
         .flatMap(([key, value]) => `${key}=${value}`)

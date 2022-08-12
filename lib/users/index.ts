@@ -1,6 +1,6 @@
 import { Axios } from "axios";
 
-import User from "../interfaces/user"
+import User from "../types/user"
 
 
 interface UserListQueryParameters {
@@ -56,7 +56,7 @@ class Users {
 
   async count(realm: string, options?: UserCountQueryParameters): Promise<number> {
 
-    let queryParams = options ?
+    const queryParams = options ?
       Object
         .entries(options)
         .flatMap(([key, value]) => `${key}=${value}`)
@@ -74,7 +74,7 @@ class Users {
 
   async list(realm: string, options?: UserListQueryParameters): Promise<User[]> {
 
-    let queryParams = options ?
+    const queryParams = options ?
       Object
         .entries(options)
         .flatMap(([key, value]) => `${key}=${value}`)

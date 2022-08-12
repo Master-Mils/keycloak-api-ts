@@ -1,7 +1,7 @@
 import { Axios } from "axios";
 
-import AuthenticationFlow from "../interfaces/authentication-flow";
-import AuthenticationExecutionInfo from "../interfaces/authentication-execution-info";
+import AuthenticationFlow from "../types/authentication-flow";
+import AuthenticationExecutionInfo from "../types/authentication-execution-info";
 
 
 class Executions {
