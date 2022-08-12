@@ -1,5 +1,5 @@
 export default interface FederatedIdentity {
-  identityProvider?: string,
-  userId?: string,
-  userName?: string
+  identityProvider?: string;
+  userId?: string;
+  userName?: string;
 }

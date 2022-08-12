@@ -20,13 +20,13 @@
   ],
   "scripts": {
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "format": "prettier --write \"lib/**/*.ts\" \"lib/**/*.js\"",
     "lint": "tslint -p ./tsconfig.json",
     "test": "ts-node ./test/index.ts",
     "prepare": "yarn build",
     "prepublishOnly": "yarn test && yarn lint",
     "preversion": "yarn lint",
-    "version": "npm run format && git add -A src"
+    "version": "yarn format && git add -A lib"
   },
   "publishConfig": {
     "access": "public"

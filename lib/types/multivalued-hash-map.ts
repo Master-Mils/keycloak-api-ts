@@ -1,5 +1,5 @@
 export default interface MultivaluedHashMap {
-  empty?: boolean,
-  loadFactor?: number,
-  threshold?: number,
+  empty?: boolean;
+  loadFactor?: number;
+  threshold?: number;
 }

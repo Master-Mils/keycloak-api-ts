@@ -1,43 +1,43 @@
-import ResourceServer from './resource-server'
-import ProtocolMapper from './protocol-mapper'
+import ResourceServer from './resource-server';
+import ProtocolMapper from './protocol-mapper';
 
 export default interface Client {
-  access?: object,
-  adminUrl?: string,
-  alwaysDisplayInConsole?: boolean,
-  attributes?: object,
-  authenticationFlowBindingOverrides?: object,
-  authorizationServicesEnabled?: boolean,
-  authorizationSettings?: ResourceServer,
-  baseUrl?: string,
-  bearerOnly?: boolean,
-  clientAuthenticatorType?: string,
-  clientId?: string,
-  consentRequired?: boolean,
-  defaultClientScopes?: string[],
-  defaultRoles?: string[],
-  description?: string,
-  directAccessGrantsEnabled?: boolean,
-  enabled?: boolean,
-  frontchannelLogout?: boolean,
-  fullScopeAllowed?: boolean,
-  id?: string,
-  implicitFlowEnabled?: boolean,
-  name?: string,
-  nodeReRegistrationTimeout?: number,
-  notBefore?: number,
-  optionalClientScopes?: string[],
-  origin?: string,
-  protocol?: string,
-  protocolMappers?: ProtocolMapper[],
-  publicClient?: boolean,
-  redirectUris?: string[],
-  registeredNodes?: object,
-  registrationAccessToken?: string,
-  rootUrl?: string,
-  secret?: string,
-  serviceAccountsEnabled?: boolean,
-  standardFlowEnabled?: boolean,
-  surrogateAuthRequired?: boolean,
-  webOrigins?: string[]
+  access?: object;
+  adminUrl?: string;
+  alwaysDisplayInConsole?: boolean;
+  attributes?: object;
+  authenticationFlowBindingOverrides?: object;
+  authorizationServicesEnabled?: boolean;
+  authorizationSettings?: ResourceServer;
+  baseUrl?: string;
+  bearerOnly?: boolean;
+  clientAuthenticatorType?: string;
+  clientId?: string;
+  consentRequired?: boolean;
+  defaultClientScopes?: string[];
+  defaultRoles?: string[];
+  description?: string;
+  directAccessGrantsEnabled?: boolean;
+  enabled?: boolean;
+  frontchannelLogout?: boolean;
+  fullScopeAllowed?: boolean;
+  id?: string;
+  implicitFlowEnabled?: boolean;
+  name?: string;
+  nodeReRegistrationTimeout?: number;
+  notBefore?: number;
+  optionalClientScopes?: string[];
+  origin?: string;
+  protocol?: string;
+  protocolMappers?: ProtocolMapper[];
+  publicClient?: boolean;
+  redirectUris?: string[];
+  registeredNodes?: object;
+  registrationAccessToken?: string;
+  rootUrl?: string;
+  secret?: string;
+  serviceAccountsEnabled?: boolean;
+  standardFlowEnabled?: boolean;
+  surrogateAuthRequired?: boolean;
+  webOrigins?: string[];
 }

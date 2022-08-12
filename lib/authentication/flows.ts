@@ -1,11 +1,10 @@
-import { Axios } from "axios";
+import { Axios } from 'axios';
 
-import AuthenticationFlow from "../types/authentication-flow";
+import AuthenticationFlow from '../types/authentication-flow';
 
-import Executions from './executions'
+import Executions from './executions';
 
 class Flows {
-
   httpClient: Axios;
   executions: Executions;
 
@@ -16,26 +15,21 @@ class Flows {
 
   async create(realm: string, data: AuthenticationFlow): Promise<boolean> {
     const url = `/${realm}/authentication/flows`;
-    return await this.httpClient
-      .post(url, JSON.stringify(data))
-      .then((response) => {
-        if (response.status === 201) {
-          return true;
-        } else {
-          return false;
-        }
-      });
+    return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
+      if (response.status === 201) {
+        return true;
+      } else {
+        return false;
+      }
+    });
   }
 
   async list(realm: string): Promise<AuthenticationFlow[]> {
     const url = `/${realm}/authentication/flows`;
-    return await this.httpClient
-      .get(url)
-      .then((response) => {
-        return JSON.parse(response.data);
-      });
+    return await this.httpClient.get(url).then((response) => {
+      return JSON.parse(response.data);
+    });
   }
-
 }
 
 export default Flows;

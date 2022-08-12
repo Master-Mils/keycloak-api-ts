@@ -1,9 +1,8 @@
-import { Axios } from "axios";
+import { Axios } from 'axios';
 
-import Flows from './flows'
+import Flows from './flows';
 
 class Authentication {
-
   httpClient: Axios;
   flows: Flows;
 
@@ -11,7 +10,6 @@ class Authentication {
     this.httpClient = httpClient;
     this.flows = new Flows(this.httpClient);
   }
-
 }
 
 export default Authentication;

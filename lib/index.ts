@@ -8,7 +8,6 @@ import Realms from './realms';
 import Users from './users';
 
 class KeycloakAPI {
-
   config: ServerSettings;
   httpClient: Axios;
 
@@ -20,12 +19,12 @@ class KeycloakAPI {
   constructor(settings: ServerSettings) {
     this.config = settings;
     this.httpClient = new Axios({
-      baseURL: `${this.config.baseUrl}/admin/realms`
+      baseURL: `${this.config.baseUrl}/admin/realms`,
     });
     this.httpClient.interceptors.request.use(async (config) => {
       config.headers = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${await this.getToken(this.config)}`
+        Authorization: `Bearer ${await this.getToken(this.config)}`,
       };
       return config;
     });
@@ -37,18 +36,16 @@ class KeycloakAPI {
   }
 
   async getToken(settings: ServerSettings): Promise<any> {
-
     settings.realmName = settings.realmName ? settings.realmName : 'master';
 
     const axiosTokenClient = axios.create({
       baseURL: settings.baseUrl,
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     });
 
-    const formBody = Object
-      .entries(settings)
+    const formBody = Object.entries(settings)
       .flatMap(([key, value]) => `${key}=${value}`)
       .join('&');
 

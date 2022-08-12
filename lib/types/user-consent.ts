@@ -1,6 +1,6 @@
 export default interface UserConsent {
-  clientId?: string,
-  createdDate?: number,
-  grantedClientScopes?: string[],
-  lastUpdatedDate?: number
+  clientId?: string;
+  createdDate?: number;
+  grantedClientScopes?: string[];
+  lastUpdatedDate?: number;
 }
