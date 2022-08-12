@@ -1,12 +1,15 @@
 {
-  "name": "keycloak-api-ts",
+  "name": "@mastermils/keycloak-api-ts",
   "version": "0.0.1",
   "description": "A Keycloak admin API client.",
   "main": "index.ts",
-  "repository": "https://github.com/Master-Mils/keycloak-api-mm.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Master-Mils/keycloak-api-mm.git"
+  },
   "author": "Edmilson Santana <42233304+edmilsonss@users.noreply.github.com>",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "scripts": {
     "test": "ts-node ./test/index.ts"
   },
@@ -16,5 +19,19 @@
   },
   "devDependencies": {
     "dotenv": "^16.0.1"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Master-Mils/keycloak-api-mm/issues"
+  },
+  "homepage": "https://github.com/Master-Mils/keycloak-api-mm#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "keywords": [
+    "keycloak",
+    "api",
+    "oauth",
+    "oidc"
+  ]
 }
