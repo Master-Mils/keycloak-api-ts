@@ -1,12 +1,12 @@
 {
-  "name": "keycloak-api-mm",
+  "name": "keycloak-api-ts",
   "version": "0.0.1",
   "description": "A Keycloak admin API client.",
   "main": "index.ts",
   "repository": "https://github.com/Master-Mils/keycloak-api-mm.git",
   "author": "Edmilson Santana <42233304+edmilsonss@users.noreply.github.com>",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "scripts": {
     "test": "ts-node ./test/index.ts"
   },
