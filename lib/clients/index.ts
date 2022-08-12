@@ -25,8 +25,6 @@ export default class Clients {
       .then((response) => {
         return JSON.parse(response.data);
       });
-    // const client: Client = {};
-    // return client;
   }
 
   async get(realm: string, id: string): Promise<Client> {
