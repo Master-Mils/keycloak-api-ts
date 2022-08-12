@@ -35,7 +35,7 @@ class Users {
   async create(realm: string, data: User): Promise<boolean> {
     const url = `/${realm}/users`;
     return await this.httpClient
-      .post(url, data)
+      .post(url, JSON.stringify(data))
       .then((response) => {
         if (response.status === 201) {
           return true;
@@ -93,10 +93,13 @@ class Users {
   async update(realm: string, id: string, data: User): Promise<boolean> {
     const url = `/${realm}/users/${id}`;
     return await this.httpClient
-      .put(url, data)
+      .put(url, JSON.stringify(data))
       .then((response) => {
-        // TODO: check if this works correctly.
-        return response.data || false;
+        if (response.status === 204) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 
@@ -104,8 +107,12 @@ class Users {
     const url = `/${realm}/users/${id})`;
     return await this.httpClient
       .delete(url)
-      .then(() => {
-        return true;
+      .then((response) => {
+        if (response.status === 204) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 

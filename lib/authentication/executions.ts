@@ -24,7 +24,7 @@ class Executions {
   async create(realm: string, data: AuthenticationFlow): Promise<boolean> {
     const url = `/${realm}/authentication/flows`;
     return await this.httpClient
-      .post(url, data)
+      .post(url, JSON.stringify(data))
       .then((response) => {
         if (response.status === 201) {
           return true;

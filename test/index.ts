@@ -54,21 +54,48 @@ const kcApi = new KeycloakAPI(settings);
 //   });
 
 
-// kcApi
-//   .realms
-//   .get('txrh')
-//   .then((users) => {
-//     console.log(JSON.stringify(users));
-//   });
-
-import testRealm from './test-realm'
 kcApi
   .realms
-  .import(testRealm)
+  .get('txrhs')
   .then((users) => {
     console.log(JSON.stringify(users));
-  })
-  .catch((err) => {
-    console.log(err);
   });
+
+// import testRealm from './test-realm'
+// kcApi
+//   .realms
+//   .import(testRealm)
+//   .then((users) => {
+//     console.log(JSON.stringify(users));
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+
+// import testRealm from './test-realm'
+// kcApi
+//   .realms
+//   .update('test1', testRealm)
+//   .then((users) => {
+//     console.log(JSON.stringify(users));
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+
+
+// kcApi
+//   .realms
+//   .delete('test1')
+//   .then((users) => {
+//     console.log(JSON.stringify(users));
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+
+
+
+
+
 

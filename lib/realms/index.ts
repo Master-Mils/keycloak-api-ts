@@ -50,9 +50,13 @@ class Realms {
   async update(realm: string, data: Realm): Promise<boolean> {
     const url = `/${realm}`;
     return await this.httpClient
-      .put(url, data)
+      .put(url, JSON.stringify(data))
       .then((response) => {
-        return response.data || false;
+        if (response.status === 204) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 
@@ -66,8 +70,12 @@ class Realms {
     const url = `/${realm}`;
     return await this.httpClient
       .delete(url)
-      .then(() => {
-        return true;
+      .then((response) => {
+        if (response.status === 204) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 

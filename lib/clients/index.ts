@@ -21,7 +21,7 @@ export default class Clients {
   async create(realm: string, data: Client): Promise<boolean> {
     const url = `/${realm}/clients`;
     return await this.httpClient
-      .post(url, data)
+      .post(url, JSON.stringify(data))
       .then((response) => {
         if (response.status === 201) {
           return true;
@@ -62,9 +62,13 @@ export default class Clients {
   async update(realm: string, id: string, data: Client): Promise<boolean> {
     const url = `/${realm}/clients/${id}`;
     return await this.httpClient
-      .put(url, data)
+      .put(url, JSON.stringify(data))
       .then((response) => {
-        return response.data || false;
+        if (response.status === 204) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 
@@ -72,8 +76,12 @@ export default class Clients {
     const url = `/${realm}/clients/${id})`;
     return await this.httpClient
       .delete(url)
-      .then(() => {
-        return true;
+      .then((response) => {
+        if (response.status === 204) {
+          return true;
+        } else {
+          return false;
+        }
       });
   }
 
