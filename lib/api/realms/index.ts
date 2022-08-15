@@ -16,7 +16,7 @@ class Realms {
       if (response.status === 201) {
         return { success: true, data: response.statusText };
       } else {
-        return { success: true, data: response.statusText };
+        return { success: false, data: response.statusText };
       }
     });
   }
@@ -54,7 +54,7 @@ class Realms {
       if (response.status === 204) {
         return { success: true, data: response.statusText };
       } else {
-        return { success: true, data: response.statusText };
+        return { success: false, data: response.statusText };
       }
     });
   }
@@ -71,7 +71,7 @@ class Realms {
       if (response.status === 204) {
         return { success: true, data: response.statusText };
       } else {
-        return { success: true, data: response.statusText };
+        return { success: false, data: response.statusText };
       }
     });
   }
