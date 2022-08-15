@@ -1,6 +1,7 @@
 import { Axios } from 'axios';
 
-import Realm from '../types/realm';
+import Realm from '../../types/realm';
+import ApiResponse from '../../types/api-response';
 
 class Realms {
   httpClient: Axios;
@@ -9,13 +10,13 @@ class Realms {
     this.httpClient = httpClient;
   }
 
-  async import(data: Realm): Promise<boolean> {
+  async import(data: Realm): Promise<ApiResponse<string>> {
     const url = `/`;
     return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
       if (response.status === 201) {
-        return true;
+        return { success: true, data: response.statusText };
       } else {
-        return false;
+        return { success: true, data: response.statusText };
       }
     });
   }
@@ -26,10 +27,15 @@ class Realms {
    * @param realm realm name (not id!)
    * @returns {Realm} On success return a representation of the realm.
    */
-  async get(realm: string): Promise<Realm> {
+  async get(realm: string): Promise<ApiResponse<Realm>> {
     const url = `/${realm}`;
     return await this.httpClient.get(url).then((response) => {
-      return JSON.parse(response.data);
+      if (response.status === 200) {
+        return { success: true, data: JSON.parse(response.data) };
+      }
+      else {
+        return { success: false, data: JSON.parse(response.data) };
+      }
     });
   }
 
@@ -42,13 +48,13 @@ class Realms {
    * @param data
    * @returns {boolean} success or failure.
    */
-  async update(realm: string, data: Realm): Promise<boolean> {
+  async update(realm: string, data: Realm): Promise<ApiResponse<string>> {
     const url = `/${realm}`;
     return await this.httpClient.put(url, JSON.stringify(data)).then((response) => {
       if (response.status === 204) {
-        return true;
+        return { success: true, data: response.statusText };
       } else {
-        return false;
+        return { success: true, data: response.statusText };
       }
     });
   }
@@ -59,13 +65,13 @@ class Realms {
    * @param realm realm name (not id!)
    * @returns {boolean} success or failure.
    */
-  async delete(realm: string): Promise<boolean> {
+  async delete(realm: string): Promise<ApiResponse<string>> {
     const url = `/${realm}`;
     return await this.httpClient.delete(url).then((response) => {
       if (response.status === 204) {
-        return true;
+        return { success: true, data: response.statusText };
       } else {
-        return false;
+        return { success: true, data: response.statusText };
       }
     });
   }
