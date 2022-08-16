@@ -32,8 +32,7 @@ class Realms {
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
         return { success: true, data: JSON.parse(response.data) };
-      }
-      else {
+      } else {
         return { success: false, data: JSON.parse(response.data) };
       }
     });
