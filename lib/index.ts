@@ -45,8 +45,8 @@ class KeycloakAPI {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       data: qs.stringify({
-        client_id: settings.client_id,
         grant_type: settings.grant_type,
+        client_id: settings.client_id,
         password: settings.password,
         username: settings.username,
       }),
