@@ -39,6 +39,7 @@ class KeycloakAPI {
     settings.realmName = settings.realmName ? settings.realmName : 'master';
 
     const options = {
+      method: 'POST',
       url: `${settings.baseUrl}/realms/${settings.realmName}/protocol/openid-connect/token`,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
