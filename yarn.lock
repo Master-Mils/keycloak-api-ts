@@ -73,11 +73,6 @@ builtin-modules@^1.1.1:
   resolved "https://registry.npmjs.org/builtin-modules/-/builtin-modules-1.1.1.tgz"
   integrity sha512-wxXCdllwGhI2kCC0MnvTGYTMvnVZTvqgypkiTI8Pa5tcz2i6VqsqwYGgqwXji+4RgCzms6EajE4IxiUH6HH8nQ==
 
-camelize-ts@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/camelize-ts/-/camelize-ts-2.1.1.tgz#bb7054fe8319ea363002a81b4c3b90332deb5895"
-  integrity sha512-PhU5pNZvg4lRTXYHYzCvq3stESnsYcBBjqG9HIEAb+HjVAnZ1aU+N3mgU+7wvKpOQSRx4AxEHAtAAyEjS7U0aw==
-
 chalk@^2.0.0, chalk@^2.3.0:
   version "2.4.2"
   resolved "https://registry.npmjs.org/chalk/-/chalk-2.4.2.tgz"

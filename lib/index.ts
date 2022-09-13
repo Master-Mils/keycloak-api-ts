@@ -1,7 +1,6 @@
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import querystring from 'query-string';
-import camelize from 'camelize-ts';
 
 
 // import ServerSettings from './types/server-settings';
@@ -104,7 +103,7 @@ class KeycloakAPI {
 //       });
 //   }
 
-  async getToken(settings: ServerSettings): Promise<TokenResponse> {
+  async getToken(settings: ServerSettings): Promise<TokenResponseRaw> {
     // Construct URL
     const baseUrl = settings.baseUrl;
     const realmName = settings.realmName || 'master';
@@ -138,7 +137,7 @@ class KeycloakAPI {
     }
 
     const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config);
-    return camelize(data);
+    return data;
   };
 
 }
