@@ -44,7 +44,12 @@ class KeycloakAPI {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      data: qs.stringify(settings),
+      data: qs.stringify({
+        grant_type: settings.grant_type,
+        client_id: settings.client_id,
+        password: settings.password,
+        username: settings.username,
+      }),
     };
 
     const axiosTokenClient = axios.create(options);
