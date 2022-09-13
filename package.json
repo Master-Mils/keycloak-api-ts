@@ -32,9 +32,11 @@
     "access": "public"
   },
   "dependencies": {
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "qs": "^6.11.0"
   },
   "devDependencies": {
+    "@types/qs": "^6.9.7",
     "dotenv": "^16.0.1",
     "prettier": "^2.7.1",
     "tslint": "^6.1.3",
