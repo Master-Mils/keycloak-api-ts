@@ -39,7 +39,7 @@ class KeycloakAPI {
     settings.realmName = settings.realmName ? settings.realmName : 'master';
 
     const options = {
-      baseURL: settings.baseUrl,
+      url: `${settings.baseUrl}/realms/${settings.realmName}/protocol/openid-connect/token`,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -51,15 +51,8 @@ class KeycloakAPI {
       }),
     };
 
-    const axiosTokenClient = axios.create(options);
-
-    // const formBody = Object.entries(settings)
-    //   .flatMap(([key, value]) => `${key}=${value}`)
-    //   .join('&');
-
-    return await axiosTokenClient
-      // .post(`/realms/${settings.realmName}/protocol/openid-connect/token`, formBody)
-      .post(`/realms/${settings.realmName}/protocol/openid-connect/token`)
+    return await axios
+      .request(options)
       .then((response) => {
         if (response.status !== 200) {
           return response.data;
