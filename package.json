@@ -32,8 +32,7 @@
     "access": "public"
   },
   "dependencies": {
-    "axios": "^0.27.2",
-    "qs": "^6.11.0"
+    "axios": "^0.27.2"
   },
   "devDependencies": {
     "@types/qs": "^6.9.7",

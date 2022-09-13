@@ -1,5 +1,4 @@
 import axios, { Axios } from 'axios';
-import qs from 'qs';
 
 import ServerSettings from './types/server-settings';
 
@@ -44,7 +43,7 @@ class KeycloakAPI {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      data: qs.stringify({
+      data: new URLSearchParams({
         grant_type: settings.grant_type,
         client_id: settings.client_id,
         password: settings.password,
