@@ -33,9 +33,19 @@ export default class Clients {
     const url = `/${realm}/clients/${id}`;
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: true,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       } else {
-        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: false,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       }
     });
   }
@@ -51,9 +61,19 @@ export default class Clients {
 
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: true,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       } else {
-        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: false,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       }
     });
   }

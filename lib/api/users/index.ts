@@ -46,9 +46,19 @@ class Users {
     const url = `/${realm}/users/${id}`;
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: true,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       } else {
-        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: false,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       }
     });
   }
@@ -82,9 +92,19 @@ class Users {
 
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: true,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       } else {
-        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
+        return {
+          success: false,
+          data: JSON.parse(response.data),
+          status: response.status,
+          statusText: response.statusText,
+        };
       }
     });
   }
