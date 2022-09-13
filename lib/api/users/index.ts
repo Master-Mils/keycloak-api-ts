@@ -64,9 +64,9 @@ class Users {
 
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: response.data };
+        return { success: true, data: response.data, status: response.status, statusText: response.statusText };
       } else {
-        return { success: false, data: response.data };
+        return { success: false, data: response.data, status: response.status, statusText: response.statusText };
       }
     });
   }
