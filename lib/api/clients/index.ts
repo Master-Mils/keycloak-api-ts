@@ -22,9 +22,9 @@ export default class Clients {
     const url = `/${realm}/clients`;
     return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
       if (response.status === 201) {
-        return { success: true, data: response.statusText };
+        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText };
+        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
       }
     });
   }
@@ -33,9 +33,9 @@ export default class Clients {
     const url = `/${realm}/clients/${id}`;
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data) };
+        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       } else {
-        return { success: false, data: JSON.parse(response.data) };
+        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       }
     });
   }
@@ -51,9 +51,9 @@ export default class Clients {
 
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data) };
+        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       } else {
-        return { success: false, data: JSON.parse(response.data) };
+        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       }
     });
   }
@@ -62,9 +62,9 @@ export default class Clients {
     const url = `/${realm}/clients/${id}`;
     return await this.httpClient.put(url, JSON.stringify(data)).then((response) => {
       if (response.status === 204) {
-        return { success: true, data: response.statusText };
+        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText };
+        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
       }
     });
   }
@@ -73,9 +73,9 @@ export default class Clients {
     const url = `/${realm}/clients/${id})`;
     return await this.httpClient.delete(url).then((response) => {
       if (response.status === 204) {
-        return { success: true, data: response.statusText };
+        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText };
+        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
       }
     });
   }

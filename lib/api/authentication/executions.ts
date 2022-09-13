@@ -15,9 +15,9 @@ class Executions {
     const url = `/${realm}/authentication/flows`;
     return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
       if (response.status === 201) {
-        return { success: true, data: response.statusText };
+        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText };
+        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
       }
     });
   }
@@ -26,9 +26,9 @@ class Executions {
     const url = `/${realm}/authentication/flows/${flowAlias}/executions`;
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data) };
+        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       } else {
-        return { success: false, data: JSON.parse(response.data) };
+        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       }
     });
   }
@@ -37,9 +37,9 @@ class Executions {
     const url = `/${realm}/authentication/flows`;
     return await this.httpClient.get(url).then((response) => {
       if (response.status === 200) {
-        return { success: true, data: JSON.parse(response.data) };
+        return { success: true, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       } else {
-        return { success: false, data: JSON.parse(response.data) };
+        return { success: false, data: JSON.parse(response.data), status: response.status, statusText: response.statusText };
       }
     });
   }
