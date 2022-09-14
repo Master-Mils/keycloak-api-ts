@@ -1,7 +1,7 @@
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import querystring from 'query-string';
-import camelcaseKeys from 'camelcase-keys';
+import camelize from 'camelize';
 
 // import ServerSettings from './types/server-settings';
 
@@ -137,7 +137,7 @@ class KeycloakAPI {
     }
 
     const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config);
-    return camelcaseKeys(data);
+    return camelize(data);
   };
 
 }
