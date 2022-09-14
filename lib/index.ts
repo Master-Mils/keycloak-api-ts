@@ -139,7 +139,7 @@ class KeycloakAPI {
     const { data } = await axios
       .post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config)
       .catch((err) => {
-        return { data: {}, error: err};
+        return err.response.data ? err.response : {} ;
       });
     return camelize(data);
   };
