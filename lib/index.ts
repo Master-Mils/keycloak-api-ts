@@ -77,31 +77,31 @@ class KeycloakAPI {
     this.users = new Users(this.httpClient);
   }
 
-//   async getToken(settings: ServerSettings): Promise<any> {
-//     settings.realmName = settings.realmName ? settings.realmName : 'master';
+  //   async getToken(settings: ServerSettings): Promise<any> {
+  //     settings.realmName = settings.realmName ? settings.realmName : 'master';
 
-//     const options = {
-//       method: 'POST',
-//       url: `${settings.baseUrl}/realms/${settings.realmName}/protocol/openid-connect/token`,
-//       headers: {
-//         'Content-Type': 'application/x-www-form-urlencoded',
-//       },
-//       data: new URLSearchParams(settings),
-//     };
+  //     const options = {
+  //       method: 'POST',
+  //       url: `${settings.baseUrl}/realms/${settings.realmName}/protocol/openid-connect/token`,
+  //       headers: {
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //       data: new URLSearchParams(settings),
+  //     };
 
-//     return await axios
-//       .request(options)
-//       .then((response) => {
-//         if (response.status !== 200) {
-//           return response.data;
-//         } else {
-//           return response.data.access_token;
-//         }
-//       })
-//       .catch((error) => {
-//         return error;
-//       });
-//   }
+  //     return await axios
+  //       .request(options)
+  //       .then((response) => {
+  //         if (response.status !== 200) {
+  //           return response.data;
+  //         } else {
+  //           return response.data.access_token;
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         return error;
+  //       });
+  //   }
 
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
     // Construct URL
@@ -136,7 +136,11 @@ class KeycloakAPI {
       };
     }
 
-    const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config);
+    const { data } = await axios
+      .post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config)
+      .catch((err) => {
+        return { data: {}, error: err};
+      });
     return camelize(data);
   };
 
