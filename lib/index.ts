@@ -91,10 +91,12 @@ class KeycloakAPI {
       client_id: credentials.clientId,
       totp: credentials.totp,
       ...(credentials.offlineToken ? { scope: 'offline_access' } : {}),
-      ...(credentials.refreshToken ? {
-        refresh_token: credentials.refreshToken,
-        client_secret: credentials.clientSecret,
-      } : {}),
+      ...(credentials.refreshToken
+        ? {
+            refresh_token: credentials.refreshToken,
+            client_secret: credentials.clientSecret,
+          }
+        : {}),
     });
 
     const config: AxiosRequestConfig = {
@@ -108,19 +110,11 @@ class KeycloakAPI {
       };
     }
 
-    const { data } = await axios
-      .post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config)
-      .catch((err) => {
-        return err.response.data ? err.response.data : err.response ? err.response : err;
-      });
+    const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config).catch((err) => {
+      return err.response.data ? err.response.data : err.response ? err.response : err;
+    });
     return camelize(data);
-  };
-
+  }
 }
-
-
-
-
-
 
 export default KeycloakAPI;
