@@ -14,9 +14,9 @@ class Realms {
     const url = `/`;
     return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
       if (response.status === 201) {
-        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
       }
     });
   }
@@ -61,9 +61,9 @@ class Realms {
     const url = `/${realm}`;
     return await this.httpClient.put(url, JSON.stringify(data)).then((response) => {
       if (response.status === 204) {
-        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
       }
     });
   }
@@ -78,9 +78,9 @@ class Realms {
     const url = `/${realm}`;
     return await this.httpClient.delete(url).then((response) => {
       if (response.status === 204) {
-        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
       }
     });
   }

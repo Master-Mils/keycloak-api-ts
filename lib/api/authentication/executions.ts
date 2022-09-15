@@ -15,9 +15,9 @@ class Executions {
     const url = `/${realm}/authentication/flows`;
     return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
       if (response.status === 201) {
-        return { success: true, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
       } else {
-        return { success: false, data: response.statusText, statusText: response.statusText, status: response.status };
+        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
       }
     });
   }
