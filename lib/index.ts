@@ -3,8 +3,6 @@ import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 import querystring from 'query-string';
 import camelize from 'camelize';
 
-// import ServerSettings from './types/server-settings';
-
 import Authentication from './api/authentication';
 import Clients from './api/clients';
 import Realms from './api/realms';
@@ -77,32 +75,6 @@ class KeycloakAPI {
     this.users = new Users(this.httpClient);
   }
 
-  //   async getToken(settings: ServerSettings): Promise<any> {
-  //     settings.realmName = settings.realmName ? settings.realmName : 'master';
-
-  //     const options = {
-  //       method: 'POST',
-  //       url: `${settings.baseUrl}/realms/${settings.realmName}/protocol/openid-connect/token`,
-  //       headers: {
-  //         'Content-Type': 'application/x-www-form-urlencoded',
-  //       },
-  //       data: new URLSearchParams(settings),
-  //     };
-
-  //     return await axios
-  //       .request(options)
-  //       .then((response) => {
-  //         if (response.status !== 200) {
-  //           return response.data;
-  //         } else {
-  //           return response.data.access_token;
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         return error;
-  //       });
-  //   }
-
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
     // Construct URL
     const baseUrl = settings.baseUrl;
@@ -139,7 +111,7 @@ class KeycloakAPI {
     const { data } = await axios
       .post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config)
       .catch((err) => {
-        return err.response.data ? err.response : {} ;
+        return err.response.data ? err.response.data : err.response ? err.response : err;
       });
     return camelize(data);
   };
