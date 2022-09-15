@@ -66,7 +66,7 @@ class KeycloakAPI {
     this.httpClient.interceptors.request.use(async (config) => {
       config.headers = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${await this.getToken(this.config)}`,
+        Authorization: `Bearer ${await (await this.getToken(this.config)).accessToken}`,
       };
       return config;
     });
