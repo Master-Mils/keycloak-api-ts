@@ -8,24 +8,23 @@ import Clients from './api/clients';
 import Realms from './api/realms';
 import Users from './api/users';
 
-interface Credentials {
-  username?: string;
-  password?: string;
-  grantType: 'client_credentials' | 'password' | 'refresh_token';
-  clientId: string;
-  clientSecret?: string;
-  totp?: string;
-  offlineToken?: boolean;
-  refreshToken?: string;
-}
-interface ServerSettings {
+export interface ServerSettings {
   realmName?: string;
   baseUrl: string;
-  credentials: Credentials;
+  credentials: {
+    username?: string;
+    password?: string;
+    grantType: 'client_credentials' | 'password' | 'refresh_token';
+    clientId: string;
+    clientSecret?: string;
+    totp?: string;
+    offlineToken?: boolean;
+    refreshToken?: string;
+  };
   requestConfig?: AxiosRequestConfig;
 }
 
-interface TokenResponse {
+export interface TokenResponse {
   accessToken: string;
   expiresIn: string;
   refreshExpiresIn: number;
@@ -36,7 +35,7 @@ interface TokenResponse {
   scope: string;
 }
 
-export interface TokenResponseRaw {
+interface TokenResponseRaw {
   access_token: string;
   expires_in: string;
   refresh_expires_in: number;
@@ -47,7 +46,7 @@ export interface TokenResponseRaw {
   scope: string;
 }
 
-class KeycloakAPI {
+export default class KeycloakAPI {
   config: ServerSettings;
   httpClient: Axios;
 
@@ -64,7 +63,7 @@ class KeycloakAPI {
     this.httpClient.interceptors.request.use(async (config) => {
       config.headers = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${await (await this.getToken(this.config)).accessToken}`,
+        Authorization: `Bearer ${(await this.getToken(this.config)).accessToken}`,
       };
       return config;
     });
@@ -116,5 +115,3 @@ class KeycloakAPI {
     return camelize(data);
   }
 }
-
-export default KeycloakAPI;
