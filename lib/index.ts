@@ -109,8 +109,9 @@ export default class KeycloakAPI {
       };
     }
 
-    const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config).catch((err) => {
-      return err.response.data ? err.response.data : err.response ? err.response : err;
+    const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config)
+    .catch((err) => {
+      return err.response?.data ? err.response.data : err.response ? err.response : err;
     });
     return camelize(data);
   }
