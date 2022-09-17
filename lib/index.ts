@@ -25,7 +25,7 @@ axiosRetry(axios, {
   retryDelay: axiosRetry.exponentialDelay,
 });
 
-axiosThrottle.use(axios, { requestsPerSecond: 5 });
+axiosThrottle.use(axios, { requestsPerSecond: 10 });
 
 export interface ServerSettings {
   realmName?: string;
@@ -86,7 +86,7 @@ export default class KeycloakAPI {
     this.autoRefreshToken = autoRefreshToken;
     this.httpClient = axios.create({
       baseURL: `${this.config.baseUrl}/admin/realms`,
-      timeout: 55,
+      timeout: 300,
     });
     this.httpClient.interceptors.request.use(async (config) => {
       config.headers = {
@@ -169,7 +169,7 @@ export default class KeycloakAPI {
       // Periodically using refresh_token grant flow to get new access token here
       this.autoRefreshTimer = setInterval(async () => {
         const refreshToken = this.tokenSet?.refresh_token;
-        if (refreshToken) {
+        if (this.autoRefreshToken && refreshToken) {
           this.tokenSet = await this.oidcClient?.refresh(refreshToken);
           this.currentTokenInfo = {
             access_token: this.tokenSet?.access_token,
@@ -179,6 +179,8 @@ export default class KeycloakAPI {
             token_type: this.tokenSet?.token_type,
             session_state: this.tokenSet?.session_state,
           };
+        } else {
+          clearInterval(this.autoRefreshTimer);
         }
         // console.log('tokenSet refreshed');
       }, 58 * 1000); // 58 seconds
