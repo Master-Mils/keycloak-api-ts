@@ -65,6 +65,7 @@ interface TokenResponseRaw {
 export default class KeycloakAPI {
 
   autoRefreshTimer: NodeJS.Timer | undefined;
+  autoRefreshToken: boolean = false;
 
   tokenSet: TokenSet | undefined;
   oidcClient: BaseClient | undefined;
@@ -78,8 +79,9 @@ export default class KeycloakAPI {
   realms: Realms;
   users: Users;
 
-  constructor(settings: ServerSettings) {
+  constructor(settings: ServerSettings, autoRefreshToken: boolean = false) {
     this.config = settings;
+    this.autoRefreshToken = autoRefreshToken;
     this.httpClient = axios.create({
       baseURL: `${this.config.baseUrl}/admin/realms`,
     });
@@ -141,6 +143,10 @@ export default class KeycloakAPI {
       console.log('new TokenInfo');
       this.currentTokenInfo = data;
 
+    }
+
+    if (this.autoRefreshToken) {
+
       this.tokenSet = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
         .then(async (keycloakIssuer) => {
           this.oidcClient = new keycloakIssuer.Client({
@@ -162,12 +168,6 @@ export default class KeycloakAPI {
           return undefined;
         });
 
-    }
-    return camelize(this.currentTokenInfo);
-  }
-
-  startTokenAutoRefresh(): void {
-    if (!this.autoRefreshTimer && this.tokenSet && this.oidcClient) {
       // Periodically using refresh_token grant flow to get new access token here
       this.autoRefreshTimer = setInterval(async () => {
         const refreshToken = this.tokenSet?.refresh_token;
@@ -184,14 +184,22 @@ export default class KeycloakAPI {
         }
         console.log('tokenSet refreshed');
       }, 58 * 1000); // 58 seconds
-
-
-
     }
+
+    return camelize(this.currentTokenInfo);
   }
-  stopTokenAutoRefresh(): void {
-    if (this.autoRefreshTimer) {
+
+  setTokenAutoRefresh(flag: boolean): void {
+
+    this.autoRefreshToken = flag;
+
+    if (!this.autoRefreshToken && this.autoRefreshTimer) {
       clearInterval(this.autoRefreshTimer);
     }
+    if (this.autoRefreshTimer && !this.autoRefreshTimer) {
+      this.currentTokenInfo = undefined;
+    }
+
   }
+
 }
