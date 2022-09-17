@@ -1,7 +1,7 @@
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 
-import { Issuer } from 'openid-client';
+import { Issuer, TokenSet, BaseClient } from 'openid-client';
 import querystring from 'query-string';
 import camelize from 'camelize';
 
@@ -65,6 +65,9 @@ interface TokenResponseRaw {
 export default class KeycloakAPI {
 
   autoRefreshTimer: NodeJS.Timer | undefined;
+
+  tokenSet: TokenSet | undefined;
+  oidcClient: BaseClient | undefined;
 
   currentTokenInfo: TokenResponseRaw | undefined;
   config: ServerSettings;
@@ -138,48 +141,51 @@ export default class KeycloakAPI {
       console.log('new TokenInfo');
       this.currentTokenInfo = data;
 
-    }
-    return camelize(this.currentTokenInfo);
-  }
-
-  startTokenAutoRefresh(): void {
-    if (!this.autoRefreshTimer) {
-      Issuer
-        .discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
+      this.tokenSet = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
         .then(async (keycloakIssuer) => {
-          const client = new keycloakIssuer.Client({
+          this.oidcClient = new keycloakIssuer.Client({
             client_id: this.config.credentials.clientId,
             token_endpoint_auth_method: 'none', // to send only client_id in the header
           });
 
           // Use the grant type 'password'
-          let tokenSet = await client.grant({
+          return this.oidcClient.grant({
             grant_type: 'password',
             username: this.config.credentials.username,
             password: this.config.credentials.password,
           });
 
-          // Periodically using refresh_token grant flow to get new access token here
-          this.autoRefreshTimer = setInterval(async () => {
-            const refreshToken = tokenSet.refresh_token;
-            if (refreshToken) {
-              tokenSet = await client.refresh(refreshToken);
-              this.currentTokenInfo = {
-                access_token: tokenSet.access_token,
-                expires_in: tokenSet.expires_in ? String(tokenSet.expires_in) : '',
-                refresh_token: tokenSet.refresh_token,
-                scope: tokenSet.scope,
-                token_type: tokenSet.token_type,
-                session_state: tokenSet.session_state
-              };
-            }
-            console.log('tokenSet refreshed');
-          }, 58 * 1000); // 58 seconds
 
         })
         .catch((error) => {
           console.log(error);
+          return undefined;
         });
+
+    }
+    return camelize(this.currentTokenInfo);
+  }
+
+  startTokenAutoRefresh(): void {
+    if (!this.autoRefreshTimer && this.tokenSet && this.oidcClient) {
+      // Periodically using refresh_token grant flow to get new access token here
+      this.autoRefreshTimer = setInterval(async () => {
+        const refreshToken = this.tokenSet?.refresh_token;
+        if (refreshToken) {
+          this.tokenSet = await this.oidcClient?.refresh(refreshToken);
+          this.currentTokenInfo = {
+            access_token: this.tokenSet?.access_token,
+            expires_in: this.tokenSet?.expires_in ? String(this.tokenSet?.expires_in) : '',
+            refresh_token: this.tokenSet?.refresh_token,
+            scope: this.tokenSet?.scope,
+            token_type: this.tokenSet?.token_type,
+            session_state: this.tokenSet?.session_state
+          };
+        }
+        console.log('tokenSet refreshed');
+      }, 58 * 1000); // 58 seconds
+
+
 
     }
   }
