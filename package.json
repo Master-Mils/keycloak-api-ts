@@ -1,6 +1,6 @@
 {
   "name": "keycloak-api-ts",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A Keycloak admin API client.",
   "author": "Edmilson Santana <42233304+edmilsonss@users.noreply.github.com>",
   "repository": {
