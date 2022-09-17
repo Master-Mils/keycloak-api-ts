@@ -13,7 +13,7 @@ import Users from './api/users';
 axiosRetry(axios, {
   retries: 3,
   retryCondition: (error) => {
-    if ([408, 429].includes(Number(error.response?.status || 0))) {
+    if ([401, 408, 429].includes(Number(error.response?.status || 0))) {
       return true;
     }
     return axiosRetry.isNetworkOrIdempotentRequestError(error);
@@ -80,6 +80,7 @@ export default class KeycloakAPI {
     this.autoRefreshToken = autoRefreshToken;
     this.httpClient = axios.create({
       baseURL: `${this.config.baseUrl}/admin/realms`,
+      timeout: 55,
     });
     this.httpClient.interceptors.request.use(async (config) => {
       config.headers = {
