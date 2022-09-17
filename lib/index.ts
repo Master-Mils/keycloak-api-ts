@@ -145,39 +145,43 @@ export default class KeycloakAPI {
   async startTokenAutoRefresh(): Promise<void> {
     if (!this.autoRefreshTimer) {
 
-      const keycloakIssuer = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
-      .catch((error) => {
-        console.log(error);
-      });
+      await Issuer
+      .discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
+        .then(async (keycloakIssuer) => {
+          const client = new keycloakIssuer.Client({
+            client_id: this.config.credentials.clientId,
+            token_endpoint_auth_method: 'none', // to send only client_id in the header
+          });
 
-      const client = new keycloakIssuer.Client({
-        client_id: this.config.credentials.clientId,
-        token_endpoint_auth_method: 'none', // to send only client_id in the header
-      });
+          // Use the grant type 'password'
+          let tokenSet = await client.grant({
+            grant_type: 'password',
+            username: this.config.credentials.username,
+            password: this.config.credentials.password,
+          });
 
-      // Use the grant type 'password'
-      let tokenSet = await client.grant({
-        grant_type: 'password',
-        username: this.config.credentials.username,
-        password: this.config.credentials.password,
-      });
+          // Periodically using refresh_token grant flow to get new access token here
+          this.autoRefreshTimer = setInterval(async () => {
+            const refreshToken = tokenSet.refresh_token;
+            if (refreshToken) {
+              tokenSet = await client.refresh(refreshToken);
+              this.currentTokenInfo = {
+                access_token: tokenSet.access_token,
+                expires_in: tokenSet.expires_in ? String(tokenSet.expires_in) : '',
+                refresh_token: tokenSet.refresh_token,
+                scope: tokenSet.scope,
+                token_type: tokenSet.token_type,
+                session_state: tokenSet.session_state
+              };
+            }
+            console.log('tokenSet refreshed');
+          }, 58 * 1000); // 58 seconds
 
-      // Periodically using refresh_token grant flow to get new access token here
-      this.autoRefreshTimer = setInterval(async () => {
-        const refreshToken = tokenSet.refresh_token;
-        if (refreshToken) {
-          tokenSet = await client.refresh(refreshToken);
-          this.currentTokenInfo = {
-            access_token: tokenSet.access_token,
-            expires_in: tokenSet.expires_in ? String(tokenSet.expires_in) : '',
-            refresh_token: tokenSet.refresh_token,
-            scope: tokenSet.scope,
-            token_type: tokenSet.token_type,
-            session_state: tokenSet.session_state
-          };
-        }
-        console.log('tokenSet refreshed');
-      }, 58 * 1000); // 58 seconds
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
     }
   }
   stopTokenAutoRefresh(): void {
