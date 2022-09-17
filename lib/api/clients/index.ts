@@ -35,14 +35,14 @@ export default class Clients {
       if (response.status === 200) {
         return {
           success: true,
-          data: JSON.parse(response.data),
+          data: response.data,
           status: response.status,
           statusText: response.statusText,
         };
       } else {
         return {
           success: false,
-          data: JSON.parse(response.data),
+          data: response.data,
           status: response.status,
           statusText: response.statusText,
         };
@@ -63,14 +63,14 @@ export default class Clients {
       if (response.status === 200) {
         return {
           success: true,
-          data: JSON.parse(response.data),
+          data: response.data,
           status: response.status,
           statusText: response.statusText,
         };
       } else {
         return {
           success: false,
-          data: JSON.parse(response.data),
+          data: response.data,
           status: response.status,
           statusText: response.statusText,
         };
