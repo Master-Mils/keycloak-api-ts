@@ -1,4 +1,5 @@
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axiosRetry from 'axios-retry';
 
 import querystring from 'query-string';
 import camelize from 'camelize';
@@ -7,6 +8,20 @@ import Authentication from './api/authentication';
 import Clients from './api/clients';
 import Realms from './api/realms';
 import Users from './api/users';
+
+axiosRetry(
+  axios,
+  {
+    retries: 3,
+    retryCondition: (error) => {
+      if ([408, 429].includes(Number(error.response?.status || 0))) {
+        return true;
+      }
+      return axiosRetry.isNetworkOrIdempotentRequestError(error);
+    },
+    retryDelay: axiosRetry.exponentialDelay
+  }
+);
 
 export interface ServerSettings {
   realmName?: string;
@@ -57,7 +72,7 @@ export default class KeycloakAPI {
 
   constructor(settings: ServerSettings) {
     this.config = settings;
-    this.httpClient = new Axios({
+    this.httpClient = axios.create({
       baseURL: `${this.config.baseUrl}/admin/realms`,
     });
     this.httpClient.interceptors.request.use(async (config) => {
@@ -92,9 +107,9 @@ export default class KeycloakAPI {
       ...(credentials.offlineToken ? { scope: 'offline_access' } : {}),
       ...(credentials.refreshToken
         ? {
-            refresh_token: credentials.refreshToken,
-            client_secret: credentials.clientSecret,
-          }
+          refresh_token: credentials.refreshToken,
+          client_secret: credentials.clientSecret,
+        }
         : {}),
     });
 
