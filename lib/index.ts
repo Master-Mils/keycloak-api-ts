@@ -96,7 +96,7 @@ export default class KeycloakAPI {
 
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
 
-    if (this.currentTokenInfo?.access_token) {
+    if (!this.currentTokenInfo?.access_token) {
       // Construct URL
       const baseUrl = settings.baseUrl;
       const realmName = settings.realmName || 'master';
