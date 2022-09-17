@@ -135,6 +135,7 @@ export default class KeycloakAPI {
         return err.response?.data ? err.response.data : err.response ? err.response : err;
       });
 
+      console.log('new TokenInfo');
       this.currentTokenInfo = data;
 
       if (!this.tokenUpdateSet) {
