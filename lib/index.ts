@@ -69,7 +69,7 @@ export default class KeycloakAPI {
   autoRefreshTimer: NodeJS.Timer | undefined;
   autoRefreshToken: boolean = false;
 
-  tokenSet: TokenSet | undefined;
+  tokenSet: Promise<TokenSet>;
   oidcClient: BaseClient | undefined;
 
   currentTokenInfo: TokenResponseRaw | undefined;
@@ -99,6 +99,22 @@ export default class KeycloakAPI {
     this.clients = new Clients(this.httpClient);
     this.realms = new Realms(this.httpClient);
     this.users = new Users(this.httpClient);
+
+    this.tokenSet = Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`).then(
+      async (keycloakIssuer) => {
+        this.oidcClient = new keycloakIssuer.Client({
+          client_id: this.config.credentials.clientId,
+          token_endpoint_auth_method: 'none', // to send only client_id in the header
+        });
+
+        // Use the grant type 'password'
+        return this.oidcClient.grant({
+          grant_type: 'password',
+          username: this.config.credentials.username,
+          password: this.config.credentials.password,
+        });
+      },
+    );
   }
 
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
@@ -146,39 +162,21 @@ export default class KeycloakAPI {
     }
 
     if (this.autoRefreshToken) {
-      this.tokenSet = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
-        .then(async (keycloakIssuer) => {
-          this.oidcClient = new keycloakIssuer.Client({
-            client_id: this.config.credentials.clientId,
-            token_endpoint_auth_method: 'none', // to send only client_id in the header
-          });
-
-          // Use the grant type 'password'
-          return this.oidcClient.grant({
-            grant_type: 'password',
-            username: this.config.credentials.username,
-            password: this.config.credentials.password,
-          });
-        })
-        .catch((error) => {
-          // console.log(error);
-          return undefined;
-        });
-
       // Periodically using refresh_token grant flow to get new access token here
       this.autoRefreshTimer = setInterval(async () => {
-        const refreshToken = this.tokenSet?.refresh_token;
+        const tSet = await this.tokenSet;
+        const refreshToken = tSet?.refresh_token;
         if (this.autoRefreshToken && refreshToken) {
           this.tokenSet = await this.oidcClient?.refresh(refreshToken).catch((error) => {
             return error;
           });
           this.currentTokenInfo = {
-            access_token: this.tokenSet?.access_token,
-            expires_in: this.tokenSet?.expires_in ? String(this.tokenSet?.expires_in) : '',
-            refresh_token: this.tokenSet?.refresh_token,
-            scope: this.tokenSet?.scope,
-            token_type: this.tokenSet?.token_type,
-            session_state: this.tokenSet?.session_state,
+            access_token: tSet?.access_token,
+            expires_in: tSet?.expires_in ? String(tSet?.expires_in) : '',
+            refresh_token: tSet?.refresh_token,
+            scope: tSet?.scope,
+            token_type: tSet?.token_type,
+            session_state: tSet?.session_state,
           };
         } else {
           clearInterval(this.autoRefreshTimer);
