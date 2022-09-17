@@ -10,19 +10,16 @@ import Clients from './api/clients';
 import Realms from './api/realms';
 import Users from './api/users';
 
-axiosRetry(
-  axios,
-  {
-    retries: 3,
-    retryCondition: (error) => {
-      if ([408, 429].includes(Number(error.response?.status || 0))) {
-        return true;
-      }
-      return axiosRetry.isNetworkOrIdempotentRequestError(error);
-    },
-    retryDelay: axiosRetry.exponentialDelay
-  }
-);
+axiosRetry(axios, {
+  retries: 3,
+  retryCondition: (error) => {
+    if ([408, 429].includes(Number(error.response?.status || 0))) {
+      return true;
+    }
+    return axiosRetry.isNetworkOrIdempotentRequestError(error);
+  },
+  retryDelay: axiosRetry.exponentialDelay,
+});
 
 export interface ServerSettings {
   realmName?: string;
@@ -63,7 +60,6 @@ interface TokenResponseRaw {
 }
 
 export default class KeycloakAPI {
-
   autoRefreshTimer: NodeJS.Timer | undefined;
   autoRefreshToken: boolean = false;
 
@@ -100,7 +96,6 @@ export default class KeycloakAPI {
   }
 
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
-
     if (!this.currentTokenInfo?.access_token) {
       // Construct URL
       const baseUrl = settings.baseUrl;
@@ -119,9 +114,9 @@ export default class KeycloakAPI {
         ...(credentials.offlineToken ? { scope: 'offline_access' } : {}),
         ...(credentials.refreshToken
           ? {
-            refresh_token: credentials.refreshToken,
-            client_secret: credentials.clientSecret,
-          }
+              refresh_token: credentials.refreshToken,
+              client_secret: credentials.clientSecret,
+            }
           : {}),
       });
 
@@ -140,13 +135,11 @@ export default class KeycloakAPI {
         return err.response?.data ? err.response.data : err.response ? err.response : err;
       });
 
-      console.log('new TokenInfo');
+      // console.log('new TokenInfo');
       this.currentTokenInfo = data;
-
     }
 
     if (this.autoRefreshToken) {
-
       this.tokenSet = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
         .then(async (keycloakIssuer) => {
           this.oidcClient = new keycloakIssuer.Client({
@@ -160,11 +153,9 @@ export default class KeycloakAPI {
             username: this.config.credentials.username,
             password: this.config.credentials.password,
           });
-
-
         })
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           return undefined;
         });
 
@@ -179,10 +170,10 @@ export default class KeycloakAPI {
             refresh_token: this.tokenSet?.refresh_token,
             scope: this.tokenSet?.scope,
             token_type: this.tokenSet?.token_type,
-            session_state: this.tokenSet?.session_state
+            session_state: this.tokenSet?.session_state,
           };
         }
-        console.log('tokenSet refreshed');
+        // console.log('tokenSet refreshed');
       }, 58 * 1000); // 58 seconds
     }
 
@@ -190,7 +181,6 @@ export default class KeycloakAPI {
   }
 
   setTokenAutoRefresh(flag: boolean): void {
-
     this.autoRefreshToken = flag;
 
     if (!this.autoRefreshToken && this.autoRefreshTimer) {
@@ -199,7 +189,5 @@ export default class KeycloakAPI {
     if (this.autoRefreshTimer && !this.autoRefreshTimer) {
       this.currentTokenInfo = undefined;
     }
-
   }
-
 }
