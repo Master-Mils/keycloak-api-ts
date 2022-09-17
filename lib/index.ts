@@ -145,7 +145,10 @@ export default class KeycloakAPI {
   async startTokenAutoRefresh(): Promise<void> {
     if (!this.autoRefreshTimer) {
 
-      const keycloakIssuer = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`);
+      const keycloakIssuer = await Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`)
+      .catch((error) => {
+        console.log(error);
+      });
 
       const client = new keycloakIssuer.Client({
         client_id: this.config.credentials.clientId,
