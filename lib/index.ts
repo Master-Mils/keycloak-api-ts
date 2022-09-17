@@ -1,5 +1,6 @@
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
+import axiosThrottle from 'axios-request-throttle';
 
 import { Issuer, TokenSet, BaseClient } from 'openid-client';
 import querystring from 'query-string';
@@ -11,15 +12,20 @@ import Realms from './api/realms';
 import Users from './api/users';
 
 axiosRetry(axios, {
-  retries: 3,
+  retries: 10,
   retryCondition: (error) => {
     if ([401, 408, 429].includes(Number(error.response?.status || 0))) {
+      return true;
+    }
+    if (error.code === 'ECONNABORTED') {
       return true;
     }
     return axiosRetry.isNetworkOrIdempotentRequestError(error);
   },
   retryDelay: axiosRetry.exponentialDelay,
 });
+
+axiosThrottle.use(axios, { requestsPerSecond: 5 });
 
 export interface ServerSettings {
   realmName?: string;
