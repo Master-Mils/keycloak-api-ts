@@ -169,7 +169,9 @@ export default class KeycloakAPI {
       this.autoRefreshTimer = setInterval(async () => {
         const refreshToken = this.tokenSet?.refresh_token;
         if (this.autoRefreshToken && refreshToken) {
-          this.tokenSet = await this.oidcClient?.refresh(refreshToken);
+          this.tokenSet = await this.oidcClient?.refresh(refreshToken).catch((error) => {
+            return error;
+          });
           this.currentTokenInfo = {
             access_token: this.tokenSet?.access_token,
             expires_in: this.tokenSet?.expires_in ? String(this.tokenSet?.expires_in) : '',
