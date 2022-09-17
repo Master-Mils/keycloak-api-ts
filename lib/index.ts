@@ -86,7 +86,6 @@ export default class KeycloakAPI {
     this.autoRefreshToken = autoRefreshToken;
     this.httpClient = axios.create({
       baseURL: `${this.config.baseUrl}/admin/realms`,
-      timeout: 300,
     });
     this.httpClient.interceptors.request.use(async (config) => {
       config.headers = {
