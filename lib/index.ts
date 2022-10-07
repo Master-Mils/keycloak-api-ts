@@ -170,13 +170,14 @@ export default class KeycloakAPI {
           this.tokenSet = await this.oidcClient?.refresh(refreshToken).catch((error) => {
             return error;
           });
+          const refreshedTokenSet = await this.tokenSet;
           this.currentTokenInfo = {
-            access_token: tSet?.access_token,
-            expires_in: tSet?.expires_in ? String(tSet?.expires_in) : '',
-            refresh_token: tSet?.refresh_token,
-            scope: tSet?.scope,
-            token_type: tSet?.token_type,
-            session_state: tSet?.session_state,
+            access_token: refreshedTokenSet?.access_token,
+            expires_in: refreshedTokenSet?.expires_in ? String(refreshedTokenSet?.expires_in) : '',
+            refresh_token: refreshedTokenSet?.refresh_token,
+            scope: refreshedTokenSet?.scope,
+            token_type: refreshedTokenSet?.token_type,
+            session_state: refreshedTokenSet?.session_state,
           };
         } else {
           clearInterval(this.autoRefreshTimer);
