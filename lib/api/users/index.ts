@@ -121,7 +121,7 @@ class Users {
   }
 
   async delete(realm: string, id: string): Promise<ApiResponse<string>> {
-    const url = `/${realm}/users/${id})`;
+    const url = `/${realm}/users/${id}`;
     return await this.httpClient.delete(url).then((response) => {
       if (response.status === 204) {
         return { success: true, data: response.data, statusText: response.statusText, status: response.status };
