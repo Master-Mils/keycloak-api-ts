@@ -3,7 +3,6 @@ import { Axios } from 'axios';
 import Role from '../../types/role';
 import ApiResponse from '../../types/api-response';
 
-
 class Roles {
   httpClient: Axios;
 
@@ -44,7 +43,6 @@ class Roles {
   }
 
   async list(realm: string): Promise<ApiResponse<Role[]>> {
-
     const url = `/${realm}/roles`;
 
     return await this.httpClient.get(url).then((response) => {
@@ -87,7 +85,6 @@ class Roles {
       }
     });
   }
-
 }
 
 export default Roles;
