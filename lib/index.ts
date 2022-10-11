@@ -118,6 +118,32 @@ export default class KeycloakAPI {
         });
       },
     );
+
+    if (this.autoRefreshToken) {
+      // Periodically using refresh_token grant flow to get new access token here
+      this.autoRefreshTimer = setInterval(async () => {
+        const tSet = await this.tokenSet;
+        const refreshToken = tSet?.refresh_token;
+        if (this.autoRefreshToken && refreshToken) {
+          this.tokenSet = await this.oidcClient?.refresh(refreshToken).catch((error) => {
+            return error;
+          });
+          const refreshedTokenSet = await this.tokenSet;
+          this.currentTokenInfo = {
+            access_token: refreshedTokenSet?.access_token,
+            expires_in: refreshedTokenSet?.expires_in ? String(refreshedTokenSet?.expires_in) : '',
+            refresh_token: refreshedTokenSet?.refresh_token,
+            scope: refreshedTokenSet?.scope,
+            token_type: refreshedTokenSet?.token_type,
+            session_state: refreshedTokenSet?.session_state,
+          };
+        } else {
+          clearInterval(this.autoRefreshTimer);
+        }
+        // console.log('tokenSet refreshed');
+      }, 58 * 1000); // 58 seconds
+    }
+    
   }
 
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
@@ -162,31 +188,6 @@ export default class KeycloakAPI {
 
       // console.log('new TokenInfo');
       this.currentTokenInfo = data;
-    }
-
-    if (this.autoRefreshToken) {
-      // Periodically using refresh_token grant flow to get new access token here
-      this.autoRefreshTimer = setInterval(async () => {
-        const tSet = await this.tokenSet;
-        const refreshToken = tSet?.refresh_token;
-        if (this.autoRefreshToken && refreshToken) {
-          this.tokenSet = await this.oidcClient?.refresh(refreshToken).catch((error) => {
-            return error;
-          });
-          const refreshedTokenSet = await this.tokenSet;
-          this.currentTokenInfo = {
-            access_token: refreshedTokenSet?.access_token,
-            expires_in: refreshedTokenSet?.expires_in ? String(refreshedTokenSet?.expires_in) : '',
-            refresh_token: refreshedTokenSet?.refresh_token,
-            scope: refreshedTokenSet?.scope,
-            token_type: refreshedTokenSet?.token_type,
-            session_state: refreshedTokenSet?.session_state,
-          };
-        } else {
-          clearInterval(this.autoRefreshTimer);
-        }
-        // console.log('tokenSet refreshed');
-      }, 58 * 1000); // 58 seconds
     }
 
     return camelize(this.currentTokenInfo);
