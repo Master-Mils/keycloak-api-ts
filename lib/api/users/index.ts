@@ -156,7 +156,7 @@ class Users {
   async addRealmRoleMapping(realm: string, id: string, data: Role[]): Promise<ApiResponse<string>> {
     const url = `/${realm}/users/${id}/role-mappings/realm`;
     return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 201) {
+      if (response.status === 204) {
         return { success: true, data: response.data, statusText: response.statusText, status: response.status };
       } else {
         return { success: false, data: response.data, statusText: response.statusText, status: response.status };
