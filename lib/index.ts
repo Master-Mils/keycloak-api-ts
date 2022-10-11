@@ -143,7 +143,6 @@ export default class KeycloakAPI {
         // console.log('tokenSet refreshed');
       }, 58 * 1000); // 58 seconds
     }
-    
   }
 
   async getToken(settings: ServerSettings): Promise<TokenResponse> {
