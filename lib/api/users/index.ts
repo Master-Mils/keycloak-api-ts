@@ -2,6 +2,7 @@ import { Axios } from 'axios';
 
 import User from '../../types/user';
 import ApiResponse from '../../types/api-response';
+import Role from '../../types/role';
 
 interface UserListQueryParameters {
   briefRepresentation?: boolean;
@@ -151,6 +152,18 @@ class Users {
       }
     });
   }
+
+  async addRealmRoleMapping(realm: string, id: string, data: Role): Promise<ApiResponse<string>> {
+    const url = `/${realm}/users/${id}/role-mappings/realm`;
+    return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
+      if (response.status === 201) {
+        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
+      } else {
+        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
+      }
+    });
+  }
+
 }
 
 export default Users;
