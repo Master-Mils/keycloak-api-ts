@@ -130,6 +130,28 @@ class Users {
       }
     });
   }
+
+  async getRoleMappings(realm: string, id: string): Promise<ApiResponse<string>> {
+    const url = `/${realm}/users/${id}/role-mappings`;
+    return await this.httpClient.get(url).then((response) => {
+      if (response.status === 200) {
+        return {
+          success: true,
+          data: response.data,
+          status: response.status,
+          statusText: response.statusText,
+        };
+      } else {
+        return {
+          success: false,
+          data: response.data,
+          status: response.status,
+          statusText: response.statusText,
+        };
+      }
+    });
+  }
+
 }
 
 export default Users;
