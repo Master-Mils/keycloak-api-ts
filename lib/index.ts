@@ -10,6 +10,7 @@ import Authentication from './api/authentication';
 import Clients from './api/clients';
 import Realms from './api/realms';
 import Users from './api/users';
+import Roles from './api/roles';
 
 axiosRetry(axios, {
   retries: 10,
@@ -80,6 +81,7 @@ export default class KeycloakAPI {
   clients: Clients;
   realms: Realms;
   users: Users;
+  roles: Roles;
 
   constructor(settings: ServerSettings, autoRefreshToken: boolean = false) {
     this.config = settings;
@@ -99,6 +101,7 @@ export default class KeycloakAPI {
     this.clients = new Clients(this.httpClient);
     this.realms = new Realms(this.httpClient);
     this.users = new Users(this.httpClient);
+    this.roles = new Roles(this.httpClient);
 
     this.tokenSet = Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`).then(
       async (keycloakIssuer) => {
