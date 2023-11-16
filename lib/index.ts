@@ -90,10 +90,8 @@ export default class KeycloakAPI {
       baseURL: `${this.config.baseUrl}/admin/realms`,
     });
     this.httpClient.interceptors.request.use(async (config) => {
-      config.headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${(await this.getToken(this.config)).accessToken}`,
-      };
+      config.headers['Content-Type'] = 'application/json';
+      config.headers.Authorization = `Bearer ${(await this.getToken(this.config)).accessToken}`;
       return config;
     });
 
