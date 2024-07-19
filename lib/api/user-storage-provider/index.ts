@@ -1,5 +1,8 @@
 import { Axios } from 'axios';
 
+type ActionType = 'triggerFullSync' | 'triggerChangedUsersSync';
+type DirectionType = 'fedToKeycloak' | 'keycloakToFed';
+
 export class UserStorageProvider {
   constructor(private axios: Axios) {}
 
@@ -26,8 +29,8 @@ export class UserStorageProvider {
   }
 
   // Sync users
-  async syncUsers(realm: string, storageId: string, action: string) {
-    const path = `/${realm}/user-storage/${storageId}/sync?action=${action}`;
+  async syncUsers(realm: string, storageId: string, action?: ActionType) {
+    const path = `/${realm}/user-storage/${storageId}/sync${action ? '?action='.concat(action) : ''}}`;
     const response = await this.axios.post(path);
     if (response.status === 200) {
       return { success: true, data: response.data, status: response.status, statusText: response.statusText };
@@ -39,6 +42,18 @@ export class UserStorageProvider {
   // Unlink users
   async unlinkUsers(realm: string, storageId: string) {
     const path = `/${realm}/user-storage/${storageId}/unlink-users`;
+    const response = await this.axios.post(path);
+    if (response.status === 204) {
+      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
+    } else {
+      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
+    }
+  }
+
+  async mappersSync(realm: string, storageId: string, parentId: string, direction?: DirectionType) {
+    const path = `/${realm}/user-storage/${parentId}/mappers/${storageId}/sync${
+      direction ? '?direction='.concat(direction) : ''
+    }`;
     const response = await this.axios.post(path);
     if (response.status === 204) {
       return { success: true, data: response.data, status: response.status, statusText: response.statusText };
