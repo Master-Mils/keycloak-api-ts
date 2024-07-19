@@ -1,6 +1,6 @@
 import { Axios } from 'axios';
 
-export class Component {
+export class Components {
   constructor(private axios: Axios) {}
 
   // List all components
