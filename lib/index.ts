@@ -56,7 +56,7 @@ export interface TokenResponse {
 }
 
 interface TokenResponseRaw {
-  access_token: string | undefined;
+  access_token?: string;
   expires_in: string;
   refresh_expires_in?: number;
   refresh_token?: string;
@@ -67,13 +67,13 @@ interface TokenResponseRaw {
 }
 
 export default class KeycloakAPI {
-  autoRefreshTimer: NodeJS.Timer | undefined;
+  autoRefreshTimer?: NodeJS.Timer;
   autoRefreshToken: boolean = false;
 
   tokenSet: Promise<TokenSet>;
-  oidcClient: BaseClient | undefined;
+  oidcClient?: BaseClient;
 
-  currentTokenInfo: TokenResponseRaw | undefined;
+  currentTokenInfo?: TokenResponseRaw;
   config: ServerSettings;
   httpClient: Axios;
 
