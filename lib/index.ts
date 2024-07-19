@@ -67,7 +67,7 @@ interface TokenResponseRaw {
 }
 
 export default class KeycloakAPI {
-  autoRefreshTimer?: NodeJS.Timer;
+  autoRefreshTimer?: NodeJS.Timeout;
   autoRefreshToken: boolean = false;
 
   tokenSet: Promise<TokenSet>;
