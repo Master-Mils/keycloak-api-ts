@@ -1,9 +1,9 @@
 # A Keycloak Admin API client
 
-This project comes to implement some implemented API calls not implemented in the official Keycloak Admin library for JavaScript.
+This project comes to implement Keycloak API calls in TypeScript.
 
 This lib is intended to be lightweight, fast, and productive for the developer.
 
-This is the very first release and it's still being tested, **it's a non production release at this moment**.
+This is not fully implemented yet thus you can reach me to ask for specific methods.
 
-Please provide feedback.
+Please provide your feedback.
