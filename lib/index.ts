@@ -11,6 +11,8 @@ import Clients from './api/clients';
 import Realms from './api/realms';
 import Users from './api/users';
 import Roles from './api/roles';
+import { UserStorageProvider } from './api/user-storage-provider';
+import { Components } from './api/components';
 
 axiosRetry(axios, {
   retries: 10,
@@ -45,42 +47,44 @@ export interface ServerSettings {
 }
 
 export interface TokenResponse {
-  accessToken: string;
-  expiresIn: string;
-  refreshExpiresIn: number;
-  refreshToken: string;
-  tokenType: string;
-  notBeforePolicy: number;
-  sessionState: string;
-  scope: string;
+  accessToken?: string;
+  tokenType?: string;
+  idToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  expiresAt?: number;
+  sessionState?: string;
+  scope?: string;
 }
 
 interface TokenResponseRaw {
-  access_token: string | undefined;
-  expires_in: string;
-  refresh_expires_in?: number;
-  refresh_token?: string;
+  access_token?: string;
   token_type?: string;
-  not_before_policy?: number;
+  id_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  expires_at?: number;
   session_state?: string;
   scope?: string;
 }
 
 export default class KeycloakAPI {
-  autoRefreshTimer: NodeJS.Timer | undefined;
+  autoRefreshTimer?: NodeJS.Timeout;
   autoRefreshToken: boolean = false;
 
   tokenSet: Promise<TokenSet>;
-  oidcClient: BaseClient | undefined;
+  oidcClient?: BaseClient;
 
-  currentTokenInfo: TokenResponseRaw | undefined;
+  currentTokenInfo?: TokenResponseRaw;
   config: ServerSettings;
   httpClient: Axios;
 
   authentication: Authentication;
   clients: Clients;
+  components: Components;
   realms: Realms;
   users: Users;
+  userStorageProvider: UserStorageProvider;
   roles: Roles;
 
   constructor(settings: ServerSettings, autoRefreshToken: boolean = false) {
@@ -97,8 +101,10 @@ export default class KeycloakAPI {
 
     this.authentication = new Authentication(this.httpClient);
     this.clients = new Clients(this.httpClient);
+    this.components = new Components(this.httpClient);
     this.realms = new Realms(this.httpClient);
     this.users = new Users(this.httpClient);
+    this.userStorageProvider = new UserStorageProvider(this.httpClient);
     this.roles = new Roles(this.httpClient);
 
     this.tokenSet = Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`).then(
@@ -129,7 +135,7 @@ export default class KeycloakAPI {
           const refreshedTokenSet = await this.tokenSet;
           this.currentTokenInfo = {
             access_token: refreshedTokenSet?.access_token,
-            expires_in: refreshedTokenSet?.expires_in ? String(refreshedTokenSet?.expires_in) : '',
+            expires_in: refreshedTokenSet?.expires_in,
             refresh_token: refreshedTokenSet?.refresh_token,
             scope: refreshedTokenSet?.scope,
             token_type: refreshedTokenSet?.token_type,
@@ -188,7 +194,7 @@ export default class KeycloakAPI {
       this.currentTokenInfo = data;
     }
 
-    return camelize(this.currentTokenInfo);
+    return camelize<TokenResponseRaw>(this.currentTokenInfo!);
   }
 
   setTokenAutoRefresh(flag: boolean): void {
