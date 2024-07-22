@@ -30,7 +30,7 @@ export class UserStorageProvider {
 
   // Sync users
   async syncUsers(realm: string, storageId: string, action?: ActionType) {
-    const path = `/${realm}/user-storage/${storageId}/sync${action ? '?action='.concat(action) : ''}}`;
+    const path = `/${realm}/user-storage/${storageId}/sync${action ? '?action='.concat(action) : ''}`;
     const response = await this.axios.post(path);
     if (response.status === 200) {
       return { success: true, data: response.data, status: response.status, statusText: response.statusText };

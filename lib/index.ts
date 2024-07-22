@@ -47,23 +47,23 @@ export interface ServerSettings {
 }
 
 export interface TokenResponse {
-  accessToken: string;
-  expiresIn: string;
-  refreshExpiresIn: number;
-  refreshToken: string;
-  tokenType: string;
-  notBeforePolicy: number;
-  sessionState: string;
-  scope: string;
+  accessToken?: string;
+  tokenType?: string;
+  idToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  expiresAt?: number;
+  sessionState?: string;
+  scope?: string;
 }
 
 interface TokenResponseRaw {
   access_token?: string;
-  expires_in: string;
-  refresh_expires_in?: number;
-  refresh_token?: string;
   token_type?: string;
-  not_before_policy?: number;
+  id_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  expires_at?: number;
   session_state?: string;
   scope?: string;
 }
@@ -135,7 +135,7 @@ export default class KeycloakAPI {
           const refreshedTokenSet = await this.tokenSet;
           this.currentTokenInfo = {
             access_token: refreshedTokenSet?.access_token,
-            expires_in: refreshedTokenSet?.expires_in ? String(refreshedTokenSet?.expires_in) : '',
+            expires_in: refreshedTokenSet?.expires_in,
             refresh_token: refreshedTokenSet?.refresh_token,
             scope: refreshedTokenSet?.scope,
             token_type: refreshedTokenSet?.token_type,
@@ -194,7 +194,7 @@ export default class KeycloakAPI {
       this.currentTokenInfo = data;
     }
 
-    return camelize(this.currentTokenInfo);
+    return camelize<TokenResponseRaw>(this.currentTokenInfo!);
   }
 
   setTokenAutoRefresh(flag: boolean): void {
