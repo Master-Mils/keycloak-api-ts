@@ -1,11 +1,6 @@
-export default interface Credential {
-  createdDate?: number;
-  credentialData?: string;
-  id?: string;
-  priority?: number;
-  secretData?: string;
-  temporary?: boolean;
-  type?: string;
-  userLabel?: string;
-  value?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `CredentialRepresentation`. */
+type Credential = components['schemas']['CredentialRepresentation'];
+
+export default Credential;

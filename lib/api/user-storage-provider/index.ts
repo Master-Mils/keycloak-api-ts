@@ -1,75 +1,68 @@
-import { Axios } from 'axios';
+import { HttpClient, path } from '../http';
+import Component from '../../types/component';
+import ApiResponse from '../../types/api-response';
 
-type ActionType = 'triggerFullSync' | 'triggerChangedUsersSync';
-type DirectionType = 'fedToKeycloak' | 'keycloakToFed';
+export type ActionType = 'triggerFullSync' | 'triggerChangedUsersSync';
+export type DirectionType = 'fedToKeycloak' | 'keycloakToFed';
+
+export interface SynchronizationResult {
+  ignored?: boolean;
+  added?: number;
+  updated?: number;
+  removed?: number;
+  failed?: number;
+  status?: string;
+}
+
+export const USER_STORAGE_PROVIDER_TYPE = 'org.keycloak.storage.UserStorageProvider';
+export const LDAP_STORAGE_MAPPER_TYPE = 'org.keycloak.storage.ldap.mappers.LDAPStorageMapper';
 
 export class UserStorageProvider {
-  constructor(private axios: Axios) {}
+  constructor(private readonly http: HttpClient) {}
 
-  // List all user storage providers
-  async list(realm: string) {
-    const path = `/${realm}/user-storage`;
-    const response = await this.axios.get(path);
-    if (response.status === 200) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  /** Lists the user storage providers (user federation) of the realm. */
+  list(realm: string): Promise<ApiResponse<Component[]>> {
+    return this.http.get(path`/${realm}/components`, { type: USER_STORAGE_PROVIDER_TYPE });
   }
 
-  // Remove imported users
-  async removeImportedUsers(realm: string, storageId: string) {
-    const path = `/${realm}/user-storage/${storageId}/remove-imported-users`;
-    const response = await this.axios.post(path);
-    if (response.status === 204) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  /** Gets the display name of a user storage provider. */
+  getName(realm: string, storageId: string): Promise<ApiResponse<{ id: string; name: string }>> {
+    return this.http.get(path`/${realm}/user-storage/${storageId}/name`);
   }
 
-  // Sync users
-  async syncUsers(realm: string, storageId: string, action?: ActionType) {
-    const path = `/${realm}/user-storage/${storageId}/sync${action ? '?action='.concat(action) : ''}`;
-    const response = await this.axios.post(path);
-    if (response.status === 200) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  removeImportedUsers(realm: string, storageId: string): Promise<ApiResponse<void>> {
+    return this.http.post(path`/${realm}/user-storage/${storageId}/remove-imported-users`);
   }
 
-  // Unlink users
-  async unlinkUsers(realm: string, storageId: string) {
-    const path = `/${realm}/user-storage/${storageId}/unlink-users`;
-    const response = await this.axios.post(path);
-    if (response.status === 204) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  syncUsers(realm: string, storageId: string, action?: ActionType): Promise<ApiResponse<SynchronizationResult>> {
+    return this.http.post(path`/${realm}/user-storage/${storageId}/sync`, undefined, { action });
   }
 
-  async mappersSync(realm: string, storageId: string, parentId: string, direction?: DirectionType) {
-    const path = `/${realm}/user-storage/${parentId}/mappers/${storageId}/sync${
-      direction ? '?direction='.concat(direction) : ''
-    }`;
-    const response = await this.axios.post(path);
-    if (response.status === 204) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  unlinkUsers(realm: string, storageId: string): Promise<ApiResponse<void>> {
+    return this.http.post(path`/${realm}/user-storage/${storageId}/unlink-users`);
   }
 
-  // List mappers
-  async listMappers(realm: string, storageId: string) {
-    const path = `/${realm}/user-storage/${storageId}/mappers`;
-    const response = await this.axios.get(path);
-    if (response.status === 200) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  /**
+   * Triggers a sync for a single storage mapper.
+   *
+   * @param mapperId id of the mapper component
+   * @param parentId id of the user storage provider that owns the mapper
+   */
+  mappersSync(
+    realm: string,
+    mapperId: string,
+    parentId: string,
+    direction?: DirectionType,
+  ): Promise<ApiResponse<SynchronizationResult>> {
+    return this.http.post(path`/${realm}/user-storage/${parentId}/mappers/${mapperId}/sync`, undefined, {
+      direction,
+    });
+  }
+
+  /** Lists the mappers of a user storage provider. */
+  listMappers(realm: string, storageId: string): Promise<ApiResponse<Component[]>> {
+    return this.http.get(path`/${realm}/components`, { parent: storageId, type: LDAP_STORAGE_MAPPER_TYPE });
   }
 }
+
+export default UserStorageProvider;

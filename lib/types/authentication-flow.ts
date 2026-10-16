@@ -1,11 +1,6 @@
-import AuthenticationExecutionExport from './authentication-execution-export';
+import { components } from '../generated/keycloak-admin';
 
-export default interface AuthenticationFlow {
-  alias?: string;
-  authenticationExecutions?: AuthenticationExecutionExport[];
-  builtIn?: boolean;
-  description?: string;
-  id?: string;
-  providerId?: string;
-  topLevel?: boolean;
-}
+/** Keycloak `AuthenticationFlowRepresentation`. */
+type AuthenticationFlow = components['schemas']['AuthenticationFlowRepresentation'];
+
+export default AuthenticationFlow;

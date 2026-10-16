@@ -1,11 +1,6 @@
-import Policy from './policy';
-import Resource from './resource';
+import { components } from '../generated/keycloak-admin';
 
-export default interface Scope {
-  displayName?: string;
-  iconUri?: string;
-  id?: string;
-  name?: string;
-  policies?: Policy[];
-  resources?: Resource[];
-}
+/** Keycloak `ScopeRepresentation`. */
+type Scope = components['schemas']['ScopeRepresentation'];
+
+export default Scope;

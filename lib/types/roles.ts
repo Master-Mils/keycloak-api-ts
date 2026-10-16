@@ -1,6 +1,6 @@
-import Role from './role';
+import { components } from '../generated/keycloak-admin';
 
-export default interface Roles {
-  client?: object;
-  realm?: Role[];
-}
+/** Keycloak `RolesRepresentation`. */
+type Roles = components['schemas']['RolesRepresentation'];
+
+export default Roles;

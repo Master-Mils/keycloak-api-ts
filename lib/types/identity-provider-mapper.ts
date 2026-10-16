@@ -1,7 +1,6 @@
-export default interface IdentityProviderMapper {
-  config?: object;
-  id?: string;
-  identityProviderAlias?: string;
-  identityProviderMapper?: string;
-  name?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `IdentityProviderMapperRepresentation`. */
+type IdentityProviderMapper = components['schemas']['IdentityProviderMapperRepresentation'];
+
+export default IdentityProviderMapper;

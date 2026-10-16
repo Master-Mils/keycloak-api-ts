@@ -1,60 +1,50 @@
-import { Axios } from 'axios';
+import { HttpClient, path } from '../http';
+import Component from '../../types/component';
+import ComponentType from '../../types/component-type';
+import ApiResponse from '../../types/api-response';
+
+export interface ComponentListQueryParameters {
+  name?: string;
+  parent?: string;
+  /** Provider type, e.g. `org.keycloak.storage.UserStorageProvider`. */
+  type?: string;
+}
 
 export class Components {
-  constructor(private axios: Axios) {}
+  constructor(private readonly http: HttpClient) {}
 
-  // List all components
-  async list(realm: string) {
-    const path = `/${realm}/components`;
-    const response = await this.axios.get(path);
-    if (response.status === 200) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  list(realm: string, options?: ComponentListQueryParameters): Promise<ApiResponse<Component[]>> {
+    return this.http.get(path`/${realm}/components`, { ...options });
   }
 
-  // Create a component
-  async create(realm: string, component: any) {
-    const path = `/${realm}/components`;
-    const response = await this.axios.post(path, component);
-    if (response.status === 201) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  /** Creates a component. On success `data` holds the new component id. */
+  create(realm: string, component: Component): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/components`, component);
   }
 
-  // Get a component by ID
-  async get(realm: string, componentId: string) {
-    const path = `/${realm}/components/${componentId}`;
-    const response = await this.axios.get(path);
-    if (response.status === 200) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  get(realm: string, componentId: string): Promise<ApiResponse<Component>> {
+    return this.http.get(path`/${realm}/components/${componentId}`);
   }
 
-  // Update a component
-  async update(realm: string, componentId: string, component: any) {
-    const path = `/${realm}/components/${componentId}`;
-    const response = await this.axios.put(path, component);
-    if (response.status === 204) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  update(realm: string, componentId: string, component: Component): Promise<ApiResponse<void>> {
+    return this.http.put(path`/${realm}/components/${componentId}`, component);
   }
 
-  // Delete a component
-  async delete(realm: string, componentId: string) {
-    const path = `/${realm}/components/${componentId}`;
-    const response = await this.axios.delete(path);
-    if (response.status === 204) {
-      return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-    } else {
-      return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-    }
+  delete(realm: string, componentId: string): Promise<ApiResponse<void>> {
+    return this.http.delete(path`/${realm}/components/${componentId}`);
+  }
+
+  /**
+   * Sub-component types that can be configured under a component, e.g. the mapper types of a user storage provider
+   * (`type: 'org.keycloak.storage.ldap.mappers.LDAPStorageMapper'`).
+   */
+  listSubComponentTypes(
+    realm: string,
+    componentId: string,
+    options?: { type?: string },
+  ): Promise<ApiResponse<ComponentType[]>> {
+    return this.http.get(path`/${realm}/components/${componentId}/sub-component-types`, { ...options });
   }
 }
+
+export default Components;

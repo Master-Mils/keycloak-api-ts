@@ -1,6 +1,6 @@
-export default interface ScopeMapping {
-  client?: string;
-  clientScope?: string;
-  roles?: string[];
-  self?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `ScopeMappingRepresentation`. */
+type ScopeMapping = components['schemas']['ScopeMappingRepresentation'];
+
+export default ScopeMapping;

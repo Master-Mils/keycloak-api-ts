@@ -1,10 +1,6 @@
-export default interface Group {
-  access?: object;
-  attributes?: object;
-  clientRoles?: object;
-  id?: string;
-  name?: string;
-  path?: string;
-  realmRoles?: string[];
-  subGroups?: Group[];
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `GroupRepresentation`. */
+type Group = components['schemas']['GroupRepresentation'];
+
+export default Group;

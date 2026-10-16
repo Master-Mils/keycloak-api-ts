@@ -1,5 +1,6 @@
-export default interface MultivaluedHashMap {
-  empty?: boolean;
-  loadFactor?: number;
-  threshold?: number;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `MultivaluedHashMapStringString`. */
+type MultivaluedHashMap = components['schemas']['MultivaluedHashMapStringString'];
+
+export default MultivaluedHashMap;

@@ -1,210 +1,184 @@
-import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axiosRetry from 'axios-retry';
-import axiosThrottle from 'axios-request-throttle';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axiosRetry, { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry';
 
-import { Issuer, TokenSet, BaseClient } from 'openid-client';
-import querystring from 'query-string';
-import camelize from 'camelize';
-
+import { Credentials, KeycloakAuthError, TokenManager, TokenResponse } from './auth';
+import { HttpClient } from './api/http';
+import AttackDetection from './api/attack-detection';
 import Authentication from './api/authentication';
 import Clients from './api/clients';
+import ClientRegistration from './api/client-registration';
+import ClientScopes from './api/client-scopes';
+import Components from './api/components';
+import Groups from './api/groups';
+import IdentityProviders from './api/identity-providers';
+import Organizations from './api/organizations';
 import Realms from './api/realms';
-import Users from './api/users';
 import Roles from './api/roles';
-import { UserStorageProvider } from './api/user-storage-provider';
-import { Components } from './api/components';
-
-axiosRetry(axios, {
-  retries: 10,
-  retryCondition: (error) => {
-    if ([401, 408, 429].includes(Number(error.response?.status || 0))) {
-      return true;
-    }
-    if (error.code === 'ECONNABORTED') {
-      return true;
-    }
-    return axiosRetry.isNetworkOrIdempotentRequestError(error);
-  },
-  retryDelay: axiosRetry.exponentialDelay,
-});
-
-axiosThrottle.use(axios, { requestsPerSecond: 10 });
+import Users from './api/users';
+import UserStorageProvider from './api/user-storage-provider';
+import Workflows from './api/workflows';
 
 export interface ServerSettings {
-  realmName?: string;
+  /** Server root URL, e.g. `https://sso.example.com` (append `/auth` only if the server uses that relative path). */
   baseUrl: string;
-  credentials: {
-    username?: string;
-    password?: string;
-    grantType: 'client_credentials' | 'password' | 'refresh_token';
-    clientId: string;
-    clientSecret?: string;
-    totp?: string;
-    offlineToken?: boolean;
-    refreshToken?: string;
-  };
+  /** Realm used to authenticate. Defaults to `master`. */
+  realmName?: string;
+  credentials: Credentials;
+  /** Extra axios options applied to every request (timeouts, proxies, TLS agents...). */
   requestConfig?: AxiosRequestConfig;
-}
-
-export interface TokenResponse {
-  accessToken?: string;
-  tokenType?: string;
-  idToken?: string;
-  refreshToken?: string;
-  expiresIn?: number;
-  expiresAt?: number;
-  sessionState?: string;
-  scope?: string;
-}
-
-interface TokenResponseRaw {
-  access_token?: string;
-  token_type?: string;
-  id_token?: string;
-  refresh_token?: string;
-  expires_in?: number;
-  expires_at?: number;
-  session_state?: string;
-  scope?: string;
+  /** Retries for network errors, 408, 429 and 5xx on idempotent requests. Defaults to 3; 0 disables. */
+  retries?: number;
+  /** Client-side rate limit. Defaults to 10 requests per second; 0 disables. */
+  requestsPerSecond?: number;
 }
 
 export default class KeycloakAPI {
-  autoRefreshTimer?: NodeJS.Timeout;
-  autoRefreshToken: boolean = false;
+  readonly config: ServerSettings;
+  readonly httpClient: AxiosInstance;
 
-  tokenSet: Promise<TokenSet>;
-  oidcClient?: BaseClient;
+  readonly attackDetection: AttackDetection;
+  readonly authentication: Authentication;
+  readonly clients: Clients;
+  readonly clientRegistration: ClientRegistration;
+  readonly clientScopes: ClientScopes;
+  readonly components: Components;
+  readonly groups: Groups;
+  readonly identityProviders: IdentityProviders;
+  readonly organizations: Organizations;
+  readonly realms: Realms;
+  readonly roles: Roles;
+  readonly users: Users;
+  readonly userStorageProvider: UserStorageProvider;
+  readonly workflows: Workflows;
 
-  currentTokenInfo?: TokenResponseRaw;
-  config: ServerSettings;
-  httpClient: Axios;
+  private readonly tokens: TokenManager;
 
-  authentication: Authentication;
-  clients: Clients;
-  components: Components;
-  realms: Realms;
-  users: Users;
-  userStorageProvider: UserStorageProvider;
-  roles: Roles;
-
+  /**
+   * @param autoRefreshToken renew the access token in the background before it expires.
+   *   Tokens are always renewed on demand, so this is only useful to keep an SSO session alive.
+   */
   constructor(settings: ServerSettings, autoRefreshToken: boolean = false) {
-    this.config = settings;
-    this.autoRefreshToken = autoRefreshToken;
+    const baseUrl = settings.baseUrl.replace(/\/+$/, '');
+    this.config = { ...settings, baseUrl };
+
+    this.tokens = new TokenManager({
+      baseUrl,
+      realmName: settings.realmName || 'master',
+      credentials: settings.credentials,
+      requestConfig: settings.requestConfig,
+      autoRefresh: autoRefreshToken,
+    });
+
     this.httpClient = axios.create({
-      baseURL: `${this.config.baseUrl}/admin/realms`,
+      ...settings.requestConfig,
+      baseURL: `${baseUrl}/admin/realms`,
     });
     this.httpClient.interceptors.request.use(async (config) => {
-      config.headers['Content-Type'] = 'application/json';
-      config.headers.Authorization = `Bearer ${(await this.getToken(this.config)).accessToken}`;
+      const { accessToken } = await this.tokens.getToken();
+      config.headers.Authorization = `Bearer ${accessToken}`;
       return config;
     });
+    throttle(this.httpClient, settings.requestsPerSecond ?? 10);
+    axiosRetry(this.httpClient, {
+      retries: settings.retries ?? 3,
+      retryDelay: exponentialDelay,
+      retryCondition: (error) =>
+        isNetworkOrIdempotentRequestError(error) || [408, 429].includes(error.response?.status ?? 0),
+    });
 
-    this.authentication = new Authentication(this.httpClient);
-    this.clients = new Clients(this.httpClient);
-    this.components = new Components(this.httpClient);
-    this.realms = new Realms(this.httpClient);
-    this.users = new Users(this.httpClient);
-    this.userStorageProvider = new UserStorageProvider(this.httpClient);
-    this.roles = new Roles(this.httpClient);
-
-    this.tokenSet = Issuer.discover(`${this.config.baseUrl}/realms/${this.config.realmName}`).then(
-      async (keycloakIssuer) => {
-        this.oidcClient = new keycloakIssuer.Client({
-          client_id: this.config.credentials.clientId,
-          token_endpoint_auth_method: 'none', // to send only client_id in the header
-        });
-
-        // Use the grant type 'password'
-        return this.oidcClient.grant({
-          grant_type: 'password',
-          username: this.config.credentials.username,
-          password: this.config.credentials.password,
-        });
-      },
-    );
-
-    if (this.autoRefreshToken) {
-      // Periodically using refresh_token grant flow to get new access token here
-      this.autoRefreshTimer = setInterval(async () => {
-        const tSet = await this.tokenSet;
-        const refreshToken = tSet?.refresh_token;
-        if (this.autoRefreshToken && refreshToken) {
-          this.tokenSet = await this.oidcClient?.refresh(refreshToken).catch((error) => {
-            return error;
-          });
-          const refreshedTokenSet = await this.tokenSet;
-          this.currentTokenInfo = {
-            access_token: refreshedTokenSet?.access_token,
-            expires_in: refreshedTokenSet?.expires_in,
-            refresh_token: refreshedTokenSet?.refresh_token,
-            scope: refreshedTokenSet?.scope,
-            token_type: refreshedTokenSet?.token_type,
-            session_state: refreshedTokenSet?.session_state,
-          };
-        } else {
-          clearInterval(this.autoRefreshTimer);
-        }
-        // console.log('tokenSet refreshed');
-      }, 58 * 1000); // 58 seconds
-    }
+    const http = new HttpClient(this.httpClient, () => this.tokens.invalidate());
+    this.attackDetection = new AttackDetection(http);
+    this.authentication = new Authentication(http);
+    this.clients = new Clients(http);
+    this.clientRegistration = new ClientRegistration(http);
+    this.clientScopes = new ClientScopes(http);
+    this.components = new Components(http);
+    this.groups = new Groups(http);
+    this.identityProviders = new IdentityProviders(http);
+    this.organizations = new Organizations(http);
+    this.realms = new Realms(http);
+    this.roles = new Roles(http);
+    this.users = new Users(http);
+    this.userStorageProvider = new UserStorageProvider(http);
+    this.workflows = new Workflows(http);
   }
 
-  async getToken(settings?: ServerSettings): Promise<TokenResponse> {
-    settings = settings ? settings : this.config;
-    if (!this.currentTokenInfo?.access_token || !this.autoRefreshToken) {
-      // Construct URL
-      const baseUrl = settings.baseUrl;
-      const realmName = settings.realmName || 'master';
-      const url = `${baseUrl}/realms/${realmName}/protocol/openid-connect/token`;
-
-      // Prepare credentials for openid-connect token request
-      // ref: http://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
-      const credentials = settings.credentials || ({} as any);
-      const payload = querystring.stringify({
-        username: credentials.username,
-        password: credentials.password,
-        grant_type: credentials.grantType,
-        client_id: credentials.clientId,
-        totp: credentials.totp,
-        ...(credentials.offlineToken ? { scope: 'offline_access' } : {}),
-        ...(credentials.refreshToken
-          ? {
-              refresh_token: credentials.refreshToken,
-              client_secret: credentials.clientSecret,
-            }
-          : {}),
-      });
-
-      const config: AxiosRequestConfig = {
-        ...settings.requestConfig,
-      };
-
-      if (credentials.clientSecret) {
-        config.auth = {
-          username: credentials.clientId,
-          password: credentials.clientSecret,
-        };
-      }
-
-      const { data } = await axios.post<any, AxiosResponse<TokenResponseRaw>>(url, payload, config).catch((err) => {
-        return err.response?.data ? err.response.data : err.response ? err.response : err;
-      });
-
-      // console.log('new TokenInfo');
-      this.currentTokenInfo = data;
-    }
-
-    return camelize<TokenResponseRaw>(this.currentTokenInfo!);
+  /** Returns a valid access token for the configured credentials. Throws `KeycloakAuthError` on failure. */
+  getToken(): Promise<TokenResponse> {
+    return this.tokens.getToken();
   }
 
   setTokenAutoRefresh(flag: boolean): void {
-    this.autoRefreshToken = flag;
+    this.tokens.autoRefresh = flag;
+  }
 
-    if (!this.autoRefreshToken && this.autoRefreshTimer) {
-      clearInterval(this.autoRefreshTimer);
-    }
-    if (this.autoRefreshTimer && !this.autoRefreshTimer) {
-      this.currentTokenInfo = undefined;
-    }
+  /** Stops background token renewal and forgets the cached token. */
+  dispose(): void {
+    this.tokens.dispose();
   }
 }
+
+/** Spaces out requests so that at most `requestsPerSecond` start each second. */
+function throttle(instance: AxiosInstance, requestsPerSecond: number): void {
+  if (!requestsPerSecond || requestsPerSecond <= 0) {
+    return;
+  }
+  const interval = 1000 / requestsPerSecond;
+  let nextSlot = 0;
+  instance.interceptors.request.use(async (config) => {
+    const now = Date.now();
+    const wait = Math.max(0, nextSlot - now);
+    nextSlot = Math.max(now, nextSlot) + interval;
+    if (wait > 0) {
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+    return config;
+  });
+}
+
+export { KeycloakAPI, KeycloakAuthError, HttpClient };
+export type { Credentials, TokenResponse };
+export type { GrantType } from './auth';
+export type {
+  CertificateUpload,
+  ClientListQueryParameters,
+  ClientScopeKind,
+  EvaluateScopesQueryParameters,
+} from './api/clients';
+export { ClientScopeResource } from './api/client-scopes';
+export type {
+  AdminEventQueryParameters,
+  EventQueryParameters,
+  PartialImportOptions,
+  PartialImportResult,
+} from './api/realms';
+export type { WorkflowListQueryParameters } from './api/workflows';
+export type {
+  PolicyListQueryParameters,
+  ResourceListQueryParameters,
+  ScopeListQueryParameters,
+  TypedPolicy,
+} from './api/clients/authorization';
+export type { IdentityProviderListQueryParameters } from './api/identity-providers';
+export type {
+  InvitationListQueryParameters,
+  MemberListQueryParameters,
+  OrganizationGroupListQueryParameters,
+  OrganizationGroupRef,
+  OrganizationListQueryParameters,
+} from './api/organizations';
+export { RoleMappings, ScopeMappings } from './api/role-mappings';
+export type { MappingOwnerPath } from './api/role-mappings';
+export { default as ProtocolMappers } from './api/protocol-mappers';
+export type { ComponentListQueryParameters } from './api/components';
+export type { GroupListQueryParameters } from './api/groups';
+export { RoleContainer, ClientRoles, RolesById } from './api/roles';
+export type { RoleListQueryParameters, RolePageQueryParameters } from './api/roles';
+export { default as RequiredActions } from './api/authentication/required-actions';
+export type { ActionEmailOptions, UserListQueryParameters, UserCountQueryParameters } from './api/users';
+export type { ActionType, DirectionType, SynchronizationResult } from './api/user-storage-provider';
+export { USER_STORAGE_PROVIDER_TYPE, LDAP_STORAGE_MAPPER_TYPE } from './api/user-storage-provider';
+export type { NewSubFlow } from './api/authentication/executions';
+export * from './types';
+export type { components as KeycloakSchemas } from './generated/keycloak-admin';
+export { KEYCLOAK_SPEC_VERSION } from './generated/keycloak-admin';

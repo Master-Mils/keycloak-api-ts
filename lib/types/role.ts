@@ -1,12 +1,6 @@
-import RoleComposites from './role-composites';
+import { components } from '../generated/keycloak-admin';
 
-export default interface Role {
-  attributes?: object;
-  clientRole?: boolean;
-  composite?: boolean;
-  composites?: RoleComposites;
-  containerId?: string;
-  description?: string;
-  id?: string;
-  name?: string;
-}
+/** Keycloak `RoleRepresentation`. */
+type Role = components['schemas']['RoleRepresentation'];
+
+export default Role;

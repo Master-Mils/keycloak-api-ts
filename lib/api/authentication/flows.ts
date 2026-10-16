@@ -1,50 +1,39 @@
-import { Axios } from 'axios';
-
+import { HttpClient, path } from '../http';
 import AuthenticationFlow from '../../types/authentication-flow';
 import ApiResponse from '../../types/api-response';
 
 import Executions from './executions';
 
-class Flows {
-  httpClient: Axios;
-  executions: Executions;
+export default class Flows {
+  readonly executions: Executions;
 
-  constructor(httpClient: Axios) {
-    this.httpClient = httpClient;
-    this.executions = new Executions(this.httpClient);
+  constructor(private readonly http: HttpClient) {
+    this.executions = new Executions(http);
   }
 
-  async create(realm: string, data: AuthenticationFlow): Promise<ApiResponse<string>> {
-    const url = `/${realm}/authentication/flows`;
-    return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 201) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
+  /** Creates a top-level flow. On success `data` holds the new flow id. */
+  create(realm: string, data: AuthenticationFlow): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/authentication/flows`, data);
   }
 
-  async list(realm: string): Promise<ApiResponse<AuthenticationFlow[]>> {
-    const url = `/${realm}/authentication/flows`;
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return {
-          success: true,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      } else {
-        return {
-          success: false,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      }
-    });
+  get(realm: string, id: string): Promise<ApiResponse<AuthenticationFlow>> {
+    return this.http.get(path`/${realm}/authentication/flows/${id}`);
+  }
+
+  list(realm: string): Promise<ApiResponse<AuthenticationFlow[]>> {
+    return this.http.get(path`/${realm}/authentication/flows`);
+  }
+
+  update(realm: string, id: string, data: AuthenticationFlow): Promise<ApiResponse<void>> {
+    return this.http.put(path`/${realm}/authentication/flows/${id}`, data);
+  }
+
+  delete(realm: string, id: string): Promise<ApiResponse<void>> {
+    return this.http.delete(path`/${realm}/authentication/flows/${id}`);
+  }
+
+  /** Copies the flow identified by `flowAlias`. On success `data` holds the new flow id. */
+  copy(realm: string, flowAlias: string, newName: string): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/authentication/flows/${flowAlias}/copy`, { newName });
   }
 }
-
-export default Flows;
