@@ -52,7 +52,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      - run: npm ci --ignore-scripts
+      # testcontainers (integration only) needs Node >= 22.22; unit tests do not load it.
+      - run: npm ci --ignore-scripts --engine-strict=false
       - run: npm test
 
   integration:
