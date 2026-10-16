@@ -795,7 +795,8 @@ describe(`Keycloak ${KEYCLOAK_VERSION} integration`, function () {
       });
       try {
         const first = await service.getToken();
-        expect(first.expiresIn).to.equal(5);
+        // Keycloak derives expires_in from exp minus the current second, so it may round down to 4.
+        expect(first.expiresIn).to.be.within(4, 5);
         ok(await service.users.count(REALM));
 
         await new Promise((resolve) => setTimeout(resolve, 4_500));
