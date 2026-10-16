@@ -1,8 +1,0 @@
-lib
-test
-scripts
-tsconfig*.json
-eslint.config.mjs
-.mocharc.json
-.prettierrc
-.github

@@ -1,0 +1,5 @@
+# Normalize line endings so Windows checkouts do not produce whole-file diffs.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

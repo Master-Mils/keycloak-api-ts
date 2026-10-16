@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an improvement or a missing behaviour.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The API you would like, e.g. a method signature or an option.
+      render: ts
+  - type: input
+    id: keycloak-version
+    attributes:
+      label: Keycloak server version (if relevant)

@@ -13,6 +13,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["lib/**/*", "test/**/*", "scripts/**/*"],
+  "include": ["lib/**/*", "test/**/*", "tools/**/*"],
   "exclude": ["node_modules", "dist"]
 }
