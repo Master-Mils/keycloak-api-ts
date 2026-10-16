@@ -1,4 +1,5 @@
 import { HttpClient, path } from '../http';
+import { RoleMappings } from '../role-mappings';
 import Group from '../../types/group';
 import User from '../../types/user';
 import ApiResponse from '../../types/api-response';
@@ -16,7 +17,12 @@ export interface GroupListQueryParameters {
 }
 
 export default class Groups {
-  constructor(private readonly http: HttpClient) {}
+  /** Realm and client role mappings of a group. */
+  readonly roleMappings: RoleMappings;
+
+  constructor(private readonly http: HttpClient) {
+    this.roleMappings = new RoleMappings(http, (realm, id) => path`/${realm}/groups/${id}`);
+  }
 
   /** Creates a top-level group. On success `data` holds the new group id. */
   create(realm: string, data: Group): Promise<ApiResponse<string>> {

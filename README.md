@@ -80,17 +80,24 @@ type ApiResponse<T> =
 
 ### Available modules
 
-| Module                            | Highlights                                                                                 |
-| --------------------------------- | ------------------------------------------------------------------------------------------ |
-| `realms`                          | import, list, get, update, delete                                                          |
-| `users`                           | CRUD, count, search (`q`, `idpAlias`...), realm role mappings, groups, user profile config |
-| `clients`                         | CRUD, search                                                                               |
-| `roles`                           | CRUD, get by id, users with a role                                                         |
-| `groups`                          | CRUD, subgroups, count, members                                                            |
-| `components`                      | CRUD with `name` / `parent` / `type` filters                                               |
-| `userStorageProvider`             | list providers and mappers, sync users, sync mappers, unlink, remove imported users        |
-| `authentication.flows`            | CRUD, copy                                                                                 |
-| `authentication.flows.executions` | list, get, add execution or sub-flow, update requirement/priority, delete                  |
+| Module                                              | Highlights                                                                                                                                                                                                |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `realms`                                            | import, list, get, update, delete                                                                                                                                                                         |
+| `users`                                             | CRUD, count, search (`q`, `idpAlias`...), realm role mappings, groups, user profile config                                                                                                                |
+| `users.roleMappings` / `groups.roleMappings`        | realm and client role mappings: list, add, remove, available, composite                                                                                                                                   |
+| `clients`                                           | CRUD, search, secrets and rotation, service account user, installation, certificates, default/optional client scopes, evaluate scopes (example tokens), sessions, cluster nodes, fine-grained permissions |
+| `clients.scopeMappings` / `clients.protocolMappers` | scope mappings (realm and client roles) and protocol mappers of a client                                                                                                                                  |
+| `clients.authorization`                             | authorization services: resource server, resources, scopes, policies, permissions, evaluation, export                                                                                                     |
+| `clientScopes`                                      | CRUD, realm default/optional scopes, `scopeMappings`, `protocolMappers`                                                                                                                                   |
+| `roles`                                             | CRUD, get by id, users with a role                                                                                                                                                                        |
+| `groups`                                            | CRUD, subgroups, count, members                                                                                                                                                                           |
+| `identityProviders`                                 | CRUD, import config, export, reload keys, provider types, mappers, fine-grained permissions                                                                                                               |
+| `organizations`                                     | CRUD, count, members, membership type, invitations, identity provider links (26+, see notes)                                                                                                              |
+| `organizations.groups`                              | organization groups, members and role mappings (26.7+)                                                                                                                                                    |
+| `components`                                        | CRUD with `name` / `parent` / `type` filters                                                                                                                                                              |
+| `userStorageProvider`                               | list providers and mappers, sync users, sync mappers, unlink, remove imported users                                                                                                                       |
+| `authentication.flows`                              | CRUD, copy                                                                                                                                                                                                |
+| `authentication.flows.executions`                   | list, get, add execution or sub-flow, update requirement/priority, delete                                                                                                                                 |
 
 All Keycloak representations are exported as types (`User`, `Client`, `Realm`, `Role`, `Group`, `UserProfileConfig`...), and the raw generated schemas are available as `KeycloakSchemas`.
 
@@ -102,6 +109,12 @@ All Keycloak representations are exported as types (`User`, `Client`, `Realm`, `
   - Role mapping endpoints return an empty list instead of `403` when the caller can't see them.
   - `IdentityProvider.organizationId` was replaced by organization links.
   - The client certificate `generate`/`download` endpoints are deprecated, so this library does not wrap them.
+- **Organizations (26+)** must be enabled on the realm (`organizationsEnabled: true`). Some endpoints are newer than 26.0:
+  - `count`: 26.3+.
+  - Invitations list/get/delete/resend: 26.5+.
+  - Organization groups and member groups: 26.7+.
+  - `updateMembershipType`, `updateIdentityProviderLink` and the `client_id` option of invitations: 26.8+.
+- **Authorization policies** are created and updated on `/policy/{type}` (the OpenAPI spec only lists the generic `/policy`, which the server cannot parse), so `type` is required in `createPolicy`, `createPermission` and `updatePolicy`.
 - **No `/auth` path** since Keycloak 17 (Quarkus distribution).
 
 ## Development
@@ -121,10 +134,13 @@ Contributions are welcome. Please open an issue first for major changes. Then fo
 
 ## Roadmap
 
-- [ ] Organizations API (Keycloak 26+).
-- [ ] Admin API v2 when it becomes stable.
-- [ ] Client role mappings and client scopes.
-- [ ] Identity providers and their mappers.
+- [x] Organizations API (Keycloak 26+).
+- [x] Client role mappings, scope mappings and client scopes.
+- [x] Identity providers and their mappers.
+- [x] Client authorization services.
+- [ ] Remaining realm-level endpoints (events, keys, attack detection, partial import/export, localization).
+- [ ] Roles by id and role composites; remaining user endpoints (credentials, sessions, consents, federated identities).
+- [ ] Workflows (26.8 preview) and Admin API v2 when they become stable.
 
 ## License
 

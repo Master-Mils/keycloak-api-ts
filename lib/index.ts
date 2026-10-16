@@ -5,8 +5,11 @@ import { Credentials, KeycloakAuthError, TokenManager, TokenResponse } from './a
 import { HttpClient } from './api/http';
 import Authentication from './api/authentication';
 import Clients from './api/clients';
+import ClientScopes from './api/client-scopes';
 import Components from './api/components';
 import Groups from './api/groups';
+import IdentityProviders from './api/identity-providers';
+import Organizations from './api/organizations';
 import Realms from './api/realms';
 import Roles from './api/roles';
 import Users from './api/users';
@@ -32,8 +35,11 @@ export default class KeycloakAPI {
 
   readonly authentication: Authentication;
   readonly clients: Clients;
+  readonly clientScopes: ClientScopes;
   readonly components: Components;
   readonly groups: Groups;
+  readonly identityProviders: IdentityProviders;
+  readonly organizations: Organizations;
   readonly realms: Realms;
   readonly roles: Roles;
   readonly users: Users;
@@ -77,8 +83,11 @@ export default class KeycloakAPI {
     const http = new HttpClient(this.httpClient, () => this.tokens.invalidate());
     this.authentication = new Authentication(http);
     this.clients = new Clients(http);
+    this.clientScopes = new ClientScopes(http);
     this.components = new Components(http);
     this.groups = new Groups(http);
+    this.identityProviders = new IdentityProviders(http);
+    this.organizations = new Organizations(http);
     this.realms = new Realms(http);
     this.roles = new Roles(http);
     this.users = new Users(http);
@@ -121,7 +130,24 @@ function throttle(instance: AxiosInstance, requestsPerSecond: number): void {
 export { KeycloakAPI, KeycloakAuthError, HttpClient };
 export type { Credentials, TokenResponse };
 export type { GrantType } from './auth';
-export type { ClientListQueryParameters } from './api/clients';
+export type { ClientListQueryParameters, ClientScopeKind, EvaluateScopesQueryParameters } from './api/clients';
+export type {
+  PolicyListQueryParameters,
+  ResourceListQueryParameters,
+  ScopeListQueryParameters,
+  TypedPolicy,
+} from './api/clients/authorization';
+export type { IdentityProviderListQueryParameters } from './api/identity-providers';
+export type {
+  InvitationListQueryParameters,
+  MemberListQueryParameters,
+  OrganizationGroupListQueryParameters,
+  OrganizationGroupRef,
+  OrganizationListQueryParameters,
+} from './api/organizations';
+export { RoleMappings, ScopeMappings } from './api/role-mappings';
+export type { MappingOwnerPath } from './api/role-mappings';
+export { default as ProtocolMappers } from './api/protocol-mappers';
 export type { ComponentListQueryParameters } from './api/components';
 export type { GroupListQueryParameters } from './api/groups';
 export type { RoleListQueryParameters } from './api/roles';

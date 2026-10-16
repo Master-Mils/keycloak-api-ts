@@ -9,6 +9,7 @@ export type QueryParams = Record<string, string | number | boolean | undefined |
 export interface RequestOptions {
   params?: QueryParams;
   data?: unknown;
+  headers?: Record<string, string>;
 }
 
 /** Hook invoked once when Keycloak answers 401, so the caller can drop its cached token before a retry. */
@@ -71,6 +72,7 @@ export class HttpClient {
         method,
         url: url + buildQuery(options.params),
         data: options.data,
+        headers: options.headers,
       });
 
     let response: AxiosResponse;

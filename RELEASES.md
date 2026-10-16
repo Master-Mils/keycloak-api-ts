@@ -38,6 +38,17 @@ Rewritten for Keycloak 24, 25 and 26 (tested up to 26.8.1). Requires Node.js 20 
   - `getProfile` / `updateProfile` (user profile config).
   - New query parameters: `q`, `idpAlias`, `idpUserId`, `emailVerified`, `briefRepresentation`.
 - `roles.getById`, `roles.listUsers`; `authentication.flows.copy`.
+- `clientScopes` module: CRUD, realm default/optional client scopes, scope mappings and protocol mappers.
+- `identityProviders` module: CRUD, import config, export, reload keys, provider types, mappers, fine-grained permissions.
+- `organizations` module (26+): CRUD, count, members, membership type, invitations, identity provider links, and `organizations.groups` with members and role mappings. Endpoints added after 26.0 are flagged in the docs.
+- `clients`:
+  - Secrets (including rotated), registration access token, service account user, certificates, installation.
+  - Default/optional client scopes; evaluate scopes (example access/id tokens, userinfo, SAML response, protocol mappers, scope mappings).
+  - Sessions and offline sessions, cluster nodes, push revocation, fine-grained permissions.
+  - `scopeMappings`, `protocolMappers` and `authorization` (resource server, resources, scopes, policies, permissions, evaluation).
+- `users.roleMappings` and `groups.roleMappings`: realm and client role mappings, including available and composite roles.
+- Shared building blocks exported for custom owners: `RoleMappings`, `ScopeMappings`, `ProtocolMappers`.
+- Admin API coverage grew from about 14% to about 60% of the 26.8.1 OpenAPI operations.
 - Exports: `KeycloakSchemas` (all generated schemas), `KEYCLOAK_SPEC_VERSION`, `USER_STORAGE_PROVIDER_TYPE`, `LDAP_STORAGE_MAPPER_TYPE`.
 - Unit tests (nock) and integration tests (Testcontainers) against Keycloak 24.0.5, 25.0.6 and 26.8.1, run in GitHub Actions.
 

@@ -1,4 +1,5 @@
 import { HttpClient, path } from '../http';
+import { RoleMappings } from '../role-mappings';
 import User from '../../types/user';
 import Role from '../../types/role';
 import Group from '../../types/group';
@@ -37,7 +38,12 @@ export interface UserCountQueryParameters {
 }
 
 export default class Users {
-  constructor(private readonly http: HttpClient) {}
+  /** Realm and client role mappings of a user. */
+  readonly roleMappings: RoleMappings;
+
+  constructor(private readonly http: HttpClient) {
+    this.roleMappings = new RoleMappings(http, (realm, id) => path`/${realm}/users/${id}`);
+  }
 
   /** Creates a user. On success `data` holds the new user id. */
   create(realm: string, data: User): Promise<ApiResponse<string>> {
