@@ -1,7 +1,6 @@
-export default interface ProtocolMapper {
-  config?: object;
-  id?: string;
-  name?: string;
-  protocol?: string;
-  protocolMapper?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `ProtocolMapperRepresentation`. */
+type ProtocolMapper = components['schemas']['ProtocolMapperRepresentation'];
+
+export default ProtocolMapper;

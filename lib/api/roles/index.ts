@@ -1,90 +1,45 @@
-import { Axios } from 'axios';
-
+import { HttpClient, path } from '../http';
 import Role from '../../types/role';
+import User from '../../types/user';
 import ApiResponse from '../../types/api-response';
 
-class Roles {
-  httpClient: Axios;
-
-  constructor(httpClient: Axios) {
-    this.httpClient = httpClient;
-  }
-
-  async create(realm: string, data: Role): Promise<ApiResponse<string>> {
-    const url = `/${realm}/roles`;
-    return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 201) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
-  }
-
-  async get(realm: string, roleName: string): Promise<ApiResponse<Role>> {
-    const url = `/${realm}/roles/${roleName}`;
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return {
-          success: true,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      } else {
-        return {
-          success: false,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      }
-    });
-  }
-
-  async list(realm: string): Promise<ApiResponse<Role[]>> {
-    const url = `/${realm}/roles`;
-
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return {
-          success: true,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      } else {
-        return {
-          success: false,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      }
-    });
-  }
-
-  async update(realm: string, roleName: string, data: Role): Promise<ApiResponse<string>> {
-    const url = `/${realm}/roles/${roleName}`;
-    return await this.httpClient.put(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 204) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
-  }
-
-  async delete(realm: string, roleName: string): Promise<ApiResponse<string>> {
-    const url = `/${realm}/roles/${roleName}`;
-    return await this.httpClient.delete(url).then((response) => {
-      if (response.status === 204) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
-  }
+export interface RoleListQueryParameters {
+  briefRepresentation?: boolean;
+  first?: number;
+  max?: number;
+  search?: string;
 }
 
-export default Roles;
+/** Realm-level roles. */
+export default class Roles {
+  constructor(private readonly http: HttpClient) {}
+
+  /** Creates a realm role. On success `data` holds the role name. */
+  create(realm: string, data: Role): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/roles`, data);
+  }
+
+  get(realm: string, roleName: string): Promise<ApiResponse<Role>> {
+    return this.http.get(path`/${realm}/roles/${roleName}`);
+  }
+
+  getById(realm: string, roleId: string): Promise<ApiResponse<Role>> {
+    return this.http.get(path`/${realm}/roles-by-id/${roleId}`);
+  }
+
+  list(realm: string, options?: RoleListQueryParameters): Promise<ApiResponse<Role[]>> {
+    return this.http.get(path`/${realm}/roles`, { ...options });
+  }
+
+  update(realm: string, roleName: string, data: Role): Promise<ApiResponse<void>> {
+    return this.http.put(path`/${realm}/roles/${roleName}`, data);
+  }
+
+  delete(realm: string, roleName: string): Promise<ApiResponse<void>> {
+    return this.http.delete(path`/${realm}/roles/${roleName}`);
+  }
+
+  listUsers(realm: string, roleName: string, options?: { first?: number; max?: number }): Promise<ApiResponse<User[]>> {
+    return this.http.get(path`/${realm}/roles/${roleName}/users`, { ...options });
+  }
+}

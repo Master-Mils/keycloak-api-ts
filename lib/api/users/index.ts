@@ -1,168 +1,119 @@
-import { Axios } from 'axios';
-
+import { HttpClient, path } from '../http';
 import User from '../../types/user';
-import ApiResponse from '../../types/api-response';
 import Role from '../../types/role';
+import Group from '../../types/group';
+import Mappings from '../../types/mappings';
+import UserProfileConfig from '../../types/user-profile';
+import ApiResponse from '../../types/api-response';
 
-interface UserListQueryParameters {
+export interface UserListQueryParameters {
   briefRepresentation?: boolean;
   email?: string;
+  emailVerified?: boolean;
   enabled?: boolean;
+  /** Exact match for `username`, `email`, `firstName` and `lastName`. */
   exact?: boolean;
   first?: number;
   firstName?: string;
+  idpAlias?: string;
+  idpUserId?: string;
   lastName?: string;
   max?: number;
+  /** Search by attribute, e.g. `key1:value1 key2:value2`. */
+  q?: string;
   search?: string;
   username?: string;
 }
 
-interface UserCountQueryParameters {
+export interface UserCountQueryParameters {
   email?: string;
+  emailVerified?: boolean;
+  enabled?: boolean;
   firstName?: string;
   lastName?: string;
+  q?: string;
   search?: string;
   username?: string;
 }
 
-class Users {
-  httpClient: Axios;
+export default class Users {
+  constructor(private readonly http: HttpClient) {}
 
-  constructor(httpClient: Axios) {
-    this.httpClient = httpClient;
+  /** Creates a user. On success `data` holds the new user id. */
+  create(realm: string, data: User): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/users`, data);
   }
 
-  async create(realm: string, data: User): Promise<ApiResponse<string>> {
-    const url = `/${realm}/users`;
-    return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 201) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
+  /** @param options.userProfileMetadata include the user profile metadata in the response */
+  get(realm: string, id: string, options?: { userProfileMetadata?: boolean }): Promise<ApiResponse<User>> {
+    return this.http.get(path`/${realm}/users/${id}`, { ...options });
   }
 
-  async get(realm: string, id: string): Promise<ApiResponse<User>> {
-    const url = `/${realm}/users/${id}`;
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return {
-          success: true,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      } else {
-        return {
-          success: false,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      }
-    });
+  count(realm: string, options?: UserCountQueryParameters): Promise<ApiResponse<number>> {
+    return this.http.get(path`/${realm}/users/count`, { ...options });
   }
 
-  async count(realm: string, options?: UserCountQueryParameters): Promise<ApiResponse<number>> {
-    const queryParams = options
-      ? Object.entries(options)
-          .flatMap(([key, value]) => `${key}=${value}`)
-          .join('&')
-      : undefined;
-
-    const url = `/${realm}/users/count${queryParams ? '?'.concat(queryParams) : ''}`;
-
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return { success: true, data: response.data, status: response.status, statusText: response.statusText };
-      } else {
-        return { success: false, data: response.data, status: response.status, statusText: response.statusText };
-      }
-    });
+  list(realm: string, options?: UserListQueryParameters): Promise<ApiResponse<User[]>> {
+    return this.http.get(path`/${realm}/users`, { ...options });
   }
 
-  async list(realm: string, options?: UserListQueryParameters): Promise<ApiResponse<User[]>> {
-    const queryParams = options
-      ? Object.entries(options)
-          .flatMap(([key, value]) => `${key}=${value}`)
-          .join('&')
-      : undefined;
-
-    const url = `/${realm}/users${queryParams ? '?'.concat(queryParams) : ''}`;
-
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return {
-          success: true,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      } else {
-        return {
-          success: false,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      }
-    });
+  /**
+   * Updates a user. Since Keycloak 24 the user profile is always enabled: attributes not declared in the
+   * profile are dropped unless the realm allows unmanaged attributes.
+   */
+  update(realm: string, id: string, data: User): Promise<ApiResponse<void>> {
+    return this.http.put(path`/${realm}/users/${id}`, data);
   }
 
-  async update(realm: string, id: string, data: User): Promise<ApiResponse<string>> {
-    const url = `/${realm}/users/${id}`;
-    return await this.httpClient.put(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 204) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
+  delete(realm: string, id: string): Promise<ApiResponse<void>> {
+    return this.http.delete(path`/${realm}/users/${id}`);
   }
 
-  async delete(realm: string, id: string): Promise<ApiResponse<string>> {
-    const url = `/${realm}/users/${id}`;
-    return await this.httpClient.delete(url).then((response) => {
-      if (response.status === 204) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
+  /** Realm and client role mappings of the user. */
+  getRoleMappings(realm: string, id: string): Promise<ApiResponse<Mappings>> {
+    return this.http.get(path`/${realm}/users/${id}/role-mappings`);
   }
 
-  async getRoleMappings(realm: string, id: string): Promise<ApiResponse<string>> {
-    const url = `/${realm}/users/${id}/role-mappings`;
-    return await this.httpClient.get(url).then((response) => {
-      if (response.status === 200) {
-        return {
-          success: true,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      } else {
-        return {
-          success: false,
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-        };
-      }
-    });
+  listRealmRoleMappings(realm: string, id: string): Promise<ApiResponse<Role[]>> {
+    return this.http.get(path`/${realm}/users/${id}/role-mappings/realm`);
   }
 
-  async addRealmRoleMapping(realm: string, id: string, data: Role[]): Promise<ApiResponse<string>> {
-    const url = `/${realm}/users/${id}/role-mappings/realm`;
-    return await this.httpClient.post(url, JSON.stringify(data)).then((response) => {
-      if (response.status === 204) {
-        return { success: true, data: response.data, statusText: response.statusText, status: response.status };
-      } else {
-        return { success: false, data: response.data, statusText: response.statusText, status: response.status };
-      }
-    });
+  /** Realm roles assigned to the user, including those inherited through composites. */
+  listCompositeRealmRoleMappings(realm: string, id: string): Promise<ApiResponse<Role[]>> {
+    return this.http.get(path`/${realm}/users/${id}/role-mappings/realm/composite`);
+  }
+
+  addRealmRoleMapping(realm: string, id: string, data: Role[]): Promise<ApiResponse<void>> {
+    return this.http.post(path`/${realm}/users/${id}/role-mappings/realm`, data);
+  }
+
+  deleteRealmRoleMapping(realm: string, id: string, data: Role[]): Promise<ApiResponse<void>> {
+    return this.http.delete(path`/${realm}/users/${id}/role-mappings/realm`, data);
+  }
+
+  listGroups(
+    realm: string,
+    id: string,
+    options?: { briefRepresentation?: boolean; first?: number; max?: number; search?: string },
+  ): Promise<ApiResponse<Group[]>> {
+    return this.http.get(path`/${realm}/users/${id}/groups`, { ...options });
+  }
+
+  addToGroup(realm: string, id: string, groupId: string): Promise<ApiResponse<void>> {
+    return this.http.put(path`/${realm}/users/${id}/groups/${groupId}`);
+  }
+
+  removeFromGroup(realm: string, id: string, groupId: string): Promise<ApiResponse<void>> {
+    return this.http.delete(path`/${realm}/users/${id}/groups/${groupId}`);
+  }
+
+  /** Gets the realm user profile configuration (attributes, groups, unmanaged attribute policy). */
+  getProfile(realm: string): Promise<ApiResponse<UserProfileConfig>> {
+    return this.http.get(path`/${realm}/users/profile`);
+  }
+
+  /** Replaces the realm user profile configuration. On success `data` holds the stored configuration. */
+  updateProfile(realm: string, config: UserProfileConfig): Promise<ApiResponse<UserProfileConfig>> {
+    return this.http.put(path`/${realm}/users/profile`, config);
   }
 }
-
-export default Users;

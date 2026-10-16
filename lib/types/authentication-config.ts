@@ -1,5 +1,6 @@
-export default interface AuthenticatorConfig {
-  alias?: string;
-  config?: object;
-  id?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `AuthenticatorConfigRepresentation`. */
+type AuthenticatorConfig = components['schemas']['AuthenticatorConfigRepresentation'];
+
+export default AuthenticatorConfig;

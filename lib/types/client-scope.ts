@@ -1,10 +1,6 @@
-import ProtocolMapper from './protocol-mapper';
+import { components } from '../generated/keycloak-admin';
 
-export default interface ClientScope {
-  attributes?: object;
-  description?: string;
-  id?: string;
-  name?: string;
-  protocol?: string;
-  protocolMappers?: ProtocolMapper[];
-}
+/** Keycloak `ClientScopeRepresentation`. */
+type ClientScope = components['schemas']['ClientScopeRepresentation'];
+
+export default ClientScope;

@@ -1,15 +1,11 @@
-import { Axios } from 'axios';
+import { HttpClient } from '../http';
 
 import Flows from './flows';
 
-class Authentication {
-  httpClient: Axios;
-  flows: Flows;
+export default class Authentication {
+  readonly flows: Flows;
 
-  constructor(httpClient: Axios) {
-    this.httpClient = httpClient;
-    this.flows = new Flows(this.httpClient);
+  constructor(http: HttpClient) {
+    this.flows = new Flows(http);
   }
 }
-
-export default Authentication;

@@ -1,9 +1,6 @@
-export default interface RequiredActionProvider {
-  alias?: string;
-  config?: object;
-  defaultAction?: boolean;
-  enabled?: boolean;
-  name?: string;
-  priority?: number;
-  providerId?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `RequiredActionProviderRepresentation`. */
+type RequiredActionProvider = components['schemas']['RequiredActionProviderRepresentation'];
+
+export default RequiredActionProvider;

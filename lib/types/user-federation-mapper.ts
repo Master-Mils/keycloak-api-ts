@@ -1,7 +1,6 @@
-export default interface UserFederationMapper {
-  config?: object;
-  federationMapperType?: string;
-  federationProviderDisplayName?: string;
-  id?: string;
-  name?: string;
-}
+import { components } from '../generated/keycloak-admin';
+
+/** Keycloak `UserFederationMapperRepresentation`. */
+type UserFederationMapper = components['schemas']['UserFederationMapperRepresentation'];
+
+export default UserFederationMapper;
