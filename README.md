@@ -9,18 +9,19 @@
 
 ## Why this library
 
-How it compares with the official [@keycloak/keycloak-admin-client](https://www.npmjs.com/package/@keycloak/keycloak-admin-client):
+How it compares with the official [@keycloak/keycloak-admin-client](https://www.npmjs.com/package/@keycloak/keycloak-admin-client) 26.8.1:
 
-|                 | keycloak-api-ts                                                                                       | official admin client                            |
-| --------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| HTTP errors     | Returned as values: `{ success: false, status, error }`                                               | Thrown as exceptions                             |
-| Realm           | Passed on every call: `api.users.list('my-realm')`. This is safe for concurrent multi-tenant code.    | Global mutable state: `setConfig({ realmName })` |
-| Tokens          | Requested lazily, cached, renewed before `expires_in`. A `401` triggers one retry with a fresh token. | You call `auth()` again yourself                 |
-| Resilience      | Retry with backoff and a client-side rate limit, applied to its own axios instance                    | None built in                                    |
-| Types           | Generated from the official OpenAPI spec, with the raw schemas exported as `KeycloakSchemas`          | Hand-written                                     |
-| Modules         | CommonJS **and** ESM                                                                                  | ESM only                                         |
-| API coverage    | 100% of the 26.8.1 spec, including deprecated and preview endpoints                                   | Partial                                          |
-| Server versions | Integration-tested against real 24.0.5, 25.0.6 and 26.8.1 servers in CI                               | Tracks the latest server                         |
+|                 | keycloak-api-ts                                                                                                      | official admin client                                                                                                                                     |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP errors     | Returned as values: `{ success: false, status, error }`                                                              | Thrown as `NetworkError` (some `findOne` calls return `null` on 404)                                                                                      |
+| Realm           | A required argument of every call: `api.users.list('my-realm')`. This is safe for concurrent multi-tenant code.      | A global default set with `setConfig({ realmName })`, which you can override per call with an optional `realm` field                                      |
+| Tokens          | Requested lazily, cached, renewed before `expires_in` with any grant. A `401` triggers one retry with a fresh token. | Renewed only with a refresh token. `client_credentials` gets none by default, so you call `auth()` again or register a `TokenProvider`. No retry on `401` |
+| Resilience      | Retry with backoff and a client-side rate limit, applied to its own axios instance                                   | Timeout only                                                                                                                                              |
+| Types           | Generated from the official OpenAPI spec, with the raw schemas exported as `KeycloakSchemas`                         | Hand-written (the experimental v2 API is generated)                                                                                                       |
+| Modules         | CommonJS **and** ESM                                                                                                 | ESM only. `require()` works on Node 20.19+/22.12+, but Jest in CommonJS mode and older toolchains need workarounds                                        |
+| API coverage    | 100% of the 26.8.1 spec (415 operations), including deprecated and preview endpoints                                 | About 82% of the spec (≈340 operations), plus Shared Signals (SSF) and verifiable-credential endpoints that are not in the spec                           |
+| Admin API v2    | Not yet (on the roadmap)                                                                                             | Experimental clients v2 (`enableExperimentalApis`)                                                                                                        |
+| Server versions | Integration-tested against real 24.0.5, 25.0.6 and 26.8.1 servers in CI                                              | Tracks the latest server                                                                                                                                  |
 
 The library also includes fixes that only show up against a real server:
 
@@ -166,6 +167,7 @@ Contributions are welcome. Please open an issue first for major changes. Then fo
 
 - [x] 100% of the Admin REST API (Keycloak 26.8.1 OpenAPI spec).
 - [ ] Admin API v2, once it is stable.
+- [ ] Shared Signals (SSF) and verifiable-credential endpoints, which are not in the OpenAPI spec yet.
 
 ## License
 
