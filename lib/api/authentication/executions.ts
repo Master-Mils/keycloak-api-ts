@@ -1,6 +1,7 @@
 import { HttpClient, path } from '../http';
 import AuthenticationExecution from '../../types/authentication-execution';
 import AuthenticationExecutionInfo from '../../types/authentication-execution-info';
+import AuthenticatorConfig from '../../types/authentication-config';
 import ApiResponse from '../../types/api-response';
 
 export interface NewSubFlow {
@@ -45,5 +46,27 @@ export default class Executions {
 
   delete(realm: string, executionId: string): Promise<ApiResponse<void>> {
     return this.http.delete(path`/${realm}/authentication/executions/${executionId}`);
+  }
+
+  /** Adds a raw execution (e.g. with `parentFlow`). On success `data` holds the new execution id. */
+  add(realm: string, data: AuthenticationExecution): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/authentication/executions`, data);
+  }
+
+  /** Creates a config for the execution. On success `data` holds the new config id. */
+  createConfig(realm: string, executionId: string, data: AuthenticatorConfig): Promise<ApiResponse<string>> {
+    return this.http.post(path`/${realm}/authentication/executions/${executionId}/config`, data);
+  }
+
+  getConfig(realm: string, executionId: string, id: string): Promise<ApiResponse<AuthenticatorConfig>> {
+    return this.http.get(path`/${realm}/authentication/executions/${executionId}/config/${id}`);
+  }
+
+  raisePriority(realm: string, executionId: string): Promise<ApiResponse<void>> {
+    return this.http.post(path`/${realm}/authentication/executions/${executionId}/raise-priority`);
+  }
+
+  lowerPriority(realm: string, executionId: string): Promise<ApiResponse<void>> {
+    return this.http.post(path`/${realm}/authentication/executions/${executionId}/lower-priority`);
   }
 }

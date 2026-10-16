@@ -632,6 +632,159 @@ describe(`Keycloak ${KEYCLOAK_VERSION} integration`, function () {
     });
   });
 
+  describe('realm administration', () => {
+    it('records and clears events and admin events', async () => {
+      ok(
+        await api.realms.updateEventsConfig(REALM, {
+          eventsEnabled: true,
+          adminEventsEnabled: true,
+          adminEventsDetailsEnabled: true,
+          eventsListeners: ['jboss-logging'],
+        }),
+      );
+      expect(ok(await api.realms.getEventsConfig(REALM)).adminEventsEnabled).to.equal(true);
+
+      const groupId = ok(await api.groups.create(REALM, { name: 'audited' }));
+      const events = ok(
+        await api.realms.listAdminEvents(REALM, { operationTypes: ['CREATE'], resourceTypes: ['GROUP'] }),
+      );
+      expect(events.map((e) => e.resourcePath)).to.include(`groups/${groupId}`);
+      expect(ok(await api.realms.listEvents(REALM, { type: ['LOGIN'], max: 10 }))).to.be.an('array');
+
+      ok(await api.realms.addDefaultGroup(REALM, groupId));
+      expect(ok(await api.realms.listDefaultGroups(REALM)).map((g) => g.id)).to.include(groupId);
+      ok(await api.realms.removeDefaultGroup(REALM, groupId));
+      ok(await api.groups.delete(REALM, groupId));
+
+      ok(await api.realms.deleteAdminEvents(REALM));
+      ok(await api.realms.deleteEvents(REALM));
+      expect(ok(await api.realms.listAdminEvents(REALM))).to.deep.equal([]);
+    });
+
+    it('manages localization overrides', async () => {
+      ok(await api.realms.updateLocalizationText(REALM, 'pt-BR', 'greeting', 'Olá'));
+      expect(ok(await api.realms.getLocalizationText(REALM, 'pt-BR', 'greeting'))).to.equal('Olá');
+      ok(await api.realms.importLocalizationTexts(REALM, 'pt-BR', { farewell: 'Tchau' }));
+      expect(ok(await api.realms.getLocalizationTexts(REALM, 'pt-BR'))).to.deep.include({
+        greeting: 'Olá',
+        farewell: 'Tchau',
+      });
+      expect(ok(await api.realms.listLocales(REALM))).to.include('pt-BR');
+      ok(await api.realms.deleteLocalizationText(REALM, 'pt-BR', 'greeting'));
+      ok(await api.realms.deleteLocalizationTexts(REALM, 'pt-BR'));
+      expect(ok(await api.realms.listLocales(REALM))).not.to.include('pt-BR');
+    });
+
+    it('reads keys, client policies, stats and exports', async () => {
+      expect(ok(await api.realms.getKeys(REALM)).keys?.length).to.be.greaterThan(0);
+      const policies = ok(await api.realms.getClientPolicies(REALM));
+      ok(await api.realms.updateClientPolicies(REALM, policies));
+      expect(ok(await api.realms.getClientProfiles(REALM, { includeGlobalProfiles: true })).globalProfiles).to.be.an(
+        'array',
+      );
+      expect(ok(await api.realms.listCredentialRegistrators(REALM))).to.be.an('array');
+      expect(ok(await api.realms.getClientSessionStats(REALM))).to.be.an('array');
+      ok(await api.realms.logoutAll(REALM));
+      ok(await api.realms.pushRevocation(REALM));
+
+      const exported = ok(await api.realms.partialExport(REALM, { exportClients: true }));
+      expect(exported.clients?.map((c) => c.clientId)).to.include('svc');
+      const imported = ok(
+        await api.realms.partialImport(REALM, { ifResourceExists: 'SKIP', roles: { realm: [{ name: 'imported' }] } }),
+      );
+      expect(imported.added).to.equal(1);
+      ok(await api.roles.delete(REALM, 'imported'));
+
+      const converted = ok(
+        await api.realms.convertClientDescription(
+          REALM,
+          JSON.stringify({ client_name: 'Converted', redirect_uris: ['https://app.example.com/*'] }),
+        ),
+      );
+      expect(converted.name).to.equal('Converted');
+    });
+
+    it('issues client registration initial access tokens', async () => {
+      const access = ok(await api.clientRegistration.createInitialAccess(REALM, { count: 2, expiration: 600 }));
+      expect(access.token).to.be.a('string');
+      expect(ok(await api.clientRegistration.listInitialAccess(REALM)).map((a) => a.id)).to.include(access.id);
+      ok(await api.clientRegistration.deleteInitialAccess(REALM, access.id!));
+      expect(ok(await api.clientRegistration.listPolicyProviders(REALM)).map((p) => p.id)).to.include('trusted-hosts');
+      expect(ok(await api.clientScopes.templates.list(REALM)).length).to.be.greaterThan(0);
+    });
+  });
+
+  describe('client roles, certificates and credentials', () => {
+    it('manages client roles, composites and roles by id', async () => {
+      const clientUuid = ok(await api.clients.create(REALM, { clientId: 'roles-app' }));
+      const roles = api.clients.roles;
+      ok(await roles.create(REALM, clientUuid, { name: 'reader' }));
+      ok(await roles.create(REALM, clientUuid, { name: 'writer' }));
+      const reader = ok(await roles.get(REALM, clientUuid, 'reader'));
+      ok(await roles.addComposites(REALM, clientUuid, 'writer', [reader]));
+      expect(ok(await roles.listComposites(REALM, clientUuid, 'writer')).map((r) => r.name)).to.deep.equal(['reader']);
+      expect(ok(await roles.listClientComposites(REALM, clientUuid, 'writer', clientUuid)).length).to.equal(1);
+
+      const writer = ok(await roles.get(REALM, clientUuid, 'writer'));
+      expect(ok(await api.roles.byId.listComposites(REALM, writer.id!)).map((r) => r.id)).to.deep.equal([reader.id]);
+      ok(await api.roles.byId.update(REALM, reader.id!, { ...reader, description: 'Reads' }));
+      expect(ok(await roles.get(REALM, clientUuid, 'reader')).description).to.equal('Reads');
+      expect(
+        ok(await roles.list(REALM, clientUuid))
+          .map((r) => r.name)
+          .sort(),
+      ).to.deep.equal(['reader', 'writer']);
+      ok(await api.clients.delete(REALM, clientUuid));
+    });
+
+    it('generates, downloads and uploads client certificates', async () => {
+      const clientUuid = ok(
+        await api.clients.create(REALM, { clientId: 'cert-app', clientAuthenticatorType: 'client-jwt' }),
+      );
+      const generated = ok(await api.clients.generateCertificate(REALM, clientUuid, 'jwt.credential'));
+      expect(generated.certificate).to.be.a('string');
+
+      const keystore = ok(
+        await api.clients.downloadKeystore(REALM, clientUuid, 'jwt.credential', {
+          format: 'PKCS12',
+          keyAlias: 'cert-app',
+          keyPassword: 'changeit',
+          storePassword: 'changeit',
+        }),
+      );
+      expect(keystore.length).to.be.greaterThan(0);
+
+      const pem = `-----BEGIN CERTIFICATE-----\n${generated.certificate}\n-----END CERTIFICATE-----\n`;
+      const uploaded = ok(
+        await api.clients.uploadCertificate(REALM, clientUuid, 'jwt.credential', {
+          keystoreFormat: 'Certificate PEM',
+          file: pem,
+        }),
+      );
+      expect(uploaded.certificate).to.equal(generated.certificate);
+      ok(await api.clients.delete(REALM, clientUuid));
+    });
+
+    it('manages user credentials, brute force status and required actions', async () => {
+      const userId = ok(await api.users.create(REALM, { username: 'cred-user', enabled: true }));
+      ok(await api.users.resetPassword(REALM, userId, { type: 'password', value: 'S3cret!pass', temporary: false }));
+      const [password] = ok(await api.users.listCredentials(REALM, userId));
+      expect(password.type).to.equal('password');
+      ok(await api.users.updateCredentialUserLabel(REALM, userId, password.id!, 'Main password'));
+      expect(ok(await api.users.listCredentials(REALM, userId))[0].userLabel).to.equal('Main password');
+      expect(ok(await api.users.listSessions(REALM, userId))).to.deep.equal([]);
+      expect(ok(await api.attackDetection.get(REALM, userId))).to.have.property('disabled', false);
+      ok(await api.attackDetection.clear(REALM, userId));
+      ok(await api.users.delete(REALM, userId));
+
+      const actions = api.authentication.requiredActions;
+      expect(ok(await actions.list(REALM)).map((a) => a.alias)).to.include('CONFIGURE_TOTP');
+      const totp = ok(await actions.get(REALM, 'CONFIGURE_TOTP'));
+      ok(await actions.update(REALM, 'CONFIGURE_TOTP', { ...totp, defaultAction: false }));
+      expect(ok(await api.authentication.listAuthenticatorProviders(REALM)).length).to.be.greaterThan(0);
+    });
+  });
+
   describe('token lifecycle', () => {
     it('renews a client_credentials token after it expires', async () => {
       const service = new KeycloakAPI({

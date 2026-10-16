@@ -183,6 +183,14 @@ export default class ClientAuthorization {
     return this.http.post(this.url(realm, clientId, path`/policy/${data.type}`), data);
   }
 
+  /**
+   * Creates a policy through the generic endpoint, which only accepts the stored form: provider settings go in the
+   * `config` map as strings (e.g. `{ type: 'js', name, config: { code: '...' } }`). Prefer `createPolicy`.
+   */
+  createPolicyRepresentation(realm: string, clientId: string, data: Policy): Promise<ApiResponse<Policy>> {
+    return this.http.post(this.url(realm, clientId, '/policy'), data);
+  }
+
   /** Finds a policy by exact name. Resolves with `data` undefined (204) when there is none. */
   findPolicy(
     realm: string,
@@ -239,6 +247,11 @@ export default class ClientAuthorization {
    */
   createPermission(realm: string, clientId: string, data: TypedPolicy): Promise<ApiResponse<Policy>> {
     return this.http.post(this.url(realm, clientId, path`/permission/${data.type}`), data);
+  }
+
+  /** Creates a permission through the generic endpoint, in the stored `config` form. Prefer `createPermission`. */
+  createPermissionRepresentation(realm: string, clientId: string, data: Policy): Promise<ApiResponse<Policy>> {
+    return this.http.post(this.url(realm, clientId, '/permission'), data);
   }
 
   /** Finds a permission by exact name. Resolves with `data` undefined (204) when there is none. */

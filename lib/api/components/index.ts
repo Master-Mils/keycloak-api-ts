@@ -1,5 +1,6 @@
 import { HttpClient, path } from '../http';
 import Component from '../../types/component';
+import ComponentType from '../../types/component-type';
 import ApiResponse from '../../types/api-response';
 
 export interface ComponentListQueryParameters {
@@ -31,6 +32,18 @@ export class Components {
 
   delete(realm: string, componentId: string): Promise<ApiResponse<void>> {
     return this.http.delete(path`/${realm}/components/${componentId}`);
+  }
+
+  /**
+   * Sub-component types that can be configured under a component, e.g. the mapper types of a user storage provider
+   * (`type: 'org.keycloak.storage.ldap.mappers.LDAPStorageMapper'`).
+   */
+  listSubComponentTypes(
+    realm: string,
+    componentId: string,
+    options?: { type?: string },
+  ): Promise<ApiResponse<ComponentType[]>> {
+    return this.http.get(path`/${realm}/components/${componentId}/sub-component-types`, { ...options });
   }
 }
 

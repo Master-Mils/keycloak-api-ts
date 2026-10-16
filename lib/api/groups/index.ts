@@ -2,6 +2,7 @@ import { HttpClient, path } from '../http';
 import { RoleMappings } from '../role-mappings';
 import Group from '../../types/group';
 import User from '../../types/user';
+import ManagementPermission from '../../types/management-permission';
 import ApiResponse from '../../types/api-response';
 
 export interface GroupListQueryParameters {
@@ -60,5 +61,34 @@ export default class Groups {
     options?: { briefRepresentation?: boolean; first?: number; max?: number },
   ): Promise<ApiResponse<User[]>> {
     return this.http.get(path`/${realm}/groups/${id}/members`, { ...options });
+  }
+
+  /** Finds a group by its path, e.g. `/engineering/platform`. */
+  getByPath(realm: string, groupPath: string): Promise<ApiResponse<Group>> {
+    const segments = groupPath.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+    return this.http.get(path`/${realm}/group-by-path/` + segments);
+  }
+
+  listChildren(
+    realm: string,
+    id: string,
+    options?: Pick<
+      GroupListQueryParameters,
+      'briefRepresentation' | 'exact' | 'first' | 'max' | 'search' | 'subGroupsCount'
+    >,
+  ): Promise<ApiResponse<Group[]>> {
+    return this.http.get(path`/${realm}/groups/${id}/children`, { ...options });
+  }
+
+  getManagementPermissions(realm: string, id: string): Promise<ApiResponse<ManagementPermission>> {
+    return this.http.get(path`/${realm}/groups/${id}/management/permissions`);
+  }
+
+  updateManagementPermissions(
+    realm: string,
+    id: string,
+    data: ManagementPermission,
+  ): Promise<ApiResponse<ManagementPermission>> {
+    return this.http.put(path`/${realm}/groups/${id}/management/permissions`, data);
   }
 }

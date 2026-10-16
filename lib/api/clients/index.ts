@@ -2,10 +2,12 @@ import { HttpClient, path } from '../http';
 import { ScopeMappings } from '../role-mappings';
 import ProtocolMappers from '../protocol-mappers';
 import ClientAuthorization from './authorization';
+import { ClientRoles } from '../roles';
 import Client from '../../types/client';
 import ClientScope from '../../types/client-scope';
 import Credential from '../../types/credential';
 import Certificate from '../../types/certificate';
+import KeyStoreConfig from '../../types/key-store-config';
 import GlobalRequestResult from '../../types/global-request-result';
 import ManagementPermission from '../../types/management-permission';
 import ProtocolMapperEvaluation from '../../types/protocol-mapper-evaluation';
@@ -37,6 +39,29 @@ export interface EvaluateScopesQueryParameters {
   audience?: string;
 }
 
+/** Multipart fields accepted by the certificate upload endpoints. */
+export interface CertificateUpload {
+  /** e.g. `JKS`, `PKCS12`, `Certificate PEM`, `Public Key PEM` or `JSON Web Key Set`. */
+  keystoreFormat: string;
+  file: string | Uint8Array | Blob;
+  keyAlias?: string;
+  keyPassword?: string;
+  storePassword?: string;
+}
+
+/** Builds the multipart form of a certificate upload. */
+export function certificateForm(upload: CertificateUpload): FormData {
+  const form = new FormData();
+  const { file, ...fields } = upload;
+  for (const [name, value] of Object.entries(fields)) {
+    if (value !== undefined) {
+      form.append(name, value);
+    }
+  }
+  form.append('file', file instanceof Blob ? file : new Blob([file]), 'certificate');
+  return form;
+}
+
 /** Whether a client scope is applied to every token (`default`) or only when requested (`optional`). */
 export type ClientScopeKind = 'default' | 'optional';
 
@@ -47,12 +72,15 @@ export default class Clients {
   readonly protocolMappers: ProtocolMappers;
   /** Authorization services: resource server, resources, scopes, policies and permissions. */
   readonly authorization: ClientAuthorization;
+  /** Client roles, addressed by the client id (UUID) and role name. */
+  readonly roles: ClientRoles;
 
   constructor(private readonly http: HttpClient) {
     const owner = (realm: string, id: string) => path`/${realm}/clients/${id}`;
     this.scopeMappings = new ScopeMappings(http, owner);
     this.protocolMappers = new ProtocolMappers(http, owner);
     this.authorization = new ClientAuthorization(http);
+    this.roles = new ClientRoles(http);
   }
 
   /** Creates a client. On success `data` holds the new client id. */
@@ -110,6 +138,66 @@ export default class Clients {
   /** Certificate stored under a key attribute, e.g. `jwt.credential` or `saml.signing`. */
   getCertificate(realm: string, id: string, attribute: string): Promise<ApiResponse<Certificate>> {
     return this.http.get(path`/${realm}/clients/${id}/certificates/${attribute}`);
+  }
+
+  /**
+   * Generates a new key pair and self-signed certificate under the attribute. Returns the certificate only.
+   *
+   * @deprecated by Keycloak; prefer JWKS URLs or realm keys.
+   */
+  generateCertificate(realm: string, id: string, attribute: string): Promise<ApiResponse<Certificate>> {
+    return this.http.post(path`/${realm}/clients/${id}/certificates/${attribute}/generate`);
+  }
+
+  /**
+   * Downloads a keystore with the public certificate stored under the attribute. On success `data` is a `Buffer`.
+   *
+   * @deprecated by Keycloak.
+   */
+  downloadKeystore(realm: string, id: string, attribute: string, config: KeyStoreConfig): Promise<ApiResponse<Buffer>> {
+    return this.http.request('POST', path`/${realm}/clients/${id}/certificates/${attribute}/download`, {
+      data: config,
+      headers: { Accept: 'application/octet-stream' },
+      responseType: 'arraybuffer',
+    });
+  }
+
+  /**
+   * Generates a new key pair and returns a keystore with the private key and certificate (`data` is a `Buffer`).
+   * Keycloak keeps only the certificate.
+   *
+   * @deprecated by Keycloak.
+   */
+  generateAndDownloadKeystore(
+    realm: string,
+    id: string,
+    attribute: string,
+    config: KeyStoreConfig,
+  ): Promise<ApiResponse<Buffer>> {
+    return this.http.request('POST', path`/${realm}/clients/${id}/certificates/${attribute}/generate-and-download`, {
+      data: config,
+      headers: { Accept: 'application/octet-stream' },
+      responseType: 'arraybuffer',
+    });
+  }
+
+  /**
+   * Uploads a certificate or keystore under the attribute (multipart). Use `keystoreFormat: 'Certificate PEM'` with
+   * `file` holding the PEM, or a keystore format with its passwords.
+   *
+   * @param withPrivateKey `true` calls `/upload` (key pair and certificate), `false` calls `/upload-certificate`.
+   */
+  uploadCertificate(
+    realm: string,
+    id: string,
+    attribute: string,
+    upload: CertificateUpload,
+    withPrivateKey = false,
+  ): Promise<ApiResponse<Certificate>> {
+    const target = withPrivateKey ? 'upload' : 'upload-certificate';
+    return this.http.request('POST', path`/${realm}/clients/${id}/certificates/${attribute}/` + target, {
+      data: certificateForm(upload),
+    });
   }
 
   /**

@@ -5,7 +5,31 @@
 
 ## Introduction
 
-**Keycloak API TS** is a lightweight TypeScript client for the Keycloak Admin REST API. It covers calls that the official [@keycloak/keycloak-admin-client](https://www.npmjs.com/package/@keycloak/keycloak-admin-client) does not expose conveniently (user storage sync, authentication executions, etc.), works in CommonJS and ESM projects, and never throws on HTTP errors.
+**Keycloak API TS** is a TypeScript client for the Keycloak Admin REST API. It covers **100% of the Admin API**: all 415 operations of the official OpenAPI spec of Keycloak 26.8.1. It is checked against Keycloak 24, 25 and 26 on every change.
+
+## Why this library
+
+How it compares with the official [@keycloak/keycloak-admin-client](https://www.npmjs.com/package/@keycloak/keycloak-admin-client):
+
+|                 | keycloak-api-ts                                                                                       | official admin client                            |
+| --------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| HTTP errors     | Returned as values: `{ success: false, status, error }`                                               | Thrown as exceptions                             |
+| Realm           | Passed on every call: `api.users.list('my-realm')`. This is safe for concurrent multi-tenant code.    | Global mutable state: `setConfig({ realmName })` |
+| Tokens          | Requested lazily, cached, renewed before `expires_in`. A `401` triggers one retry with a fresh token. | You call `auth()` again yourself                 |
+| Resilience      | Retry with backoff and a client-side rate limit, applied to its own axios instance                    | None built in                                    |
+| Types           | Generated from the official OpenAPI spec, with the raw schemas exported as `KeycloakSchemas`          | Hand-written                                     |
+| Modules         | CommonJS **and** ESM                                                                                  | ESM only                                         |
+| API coverage    | 100% of the 26.8.1 spec, including deprecated and preview endpoints                                   | Partial                                          |
+| Server versions | Integration-tested against real 24.0.5, 25.0.6 and 26.8.1 servers in CI                               | Tracks the latest server                         |
+
+The library also includes fixes that only show up against a real server:
+
+- Authorization policies are created on `/policy/{type}`, because the generic endpoint in the spec cannot parse provider fields.
+- Text and YAML bodies get the correct content type (localization texts, credential labels, workflows).
+- Keystore downloads come back as `Buffer`s.
+- Certificate uploads are sent as multipart.
+- Array filters are sent as repeated query parameters (`type=LOGIN&type=LOGOUT`).
+- `create` methods return the new id taken from the `Location` header.
 
 ## Compatibility
 
@@ -80,26 +104,31 @@ type ApiResponse<T> =
 
 ### Available modules
 
-| Module                                              | Highlights                                                                                                                                                                                                |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `realms`                                            | import, list, get, update, delete                                                                                                                                                                         |
-| `users`                                             | CRUD, count, search (`q`, `idpAlias`...), realm role mappings, groups, user profile config                                                                                                                |
-| `users.roleMappings` / `groups.roleMappings`        | realm and client role mappings: list, add, remove, available, composite                                                                                                                                   |
-| `clients`                                           | CRUD, search, secrets and rotation, service account user, installation, certificates, default/optional client scopes, evaluate scopes (example tokens), sessions, cluster nodes, fine-grained permissions |
-| `clients.scopeMappings` / `clients.protocolMappers` | scope mappings (realm and client roles) and protocol mappers of a client                                                                                                                                  |
-| `clients.authorization`                             | authorization services: resource server, resources, scopes, policies, permissions, evaluation, export                                                                                                     |
-| `clientScopes`                                      | CRUD, realm default/optional scopes, `scopeMappings`, `protocolMappers`                                                                                                                                   |
-| `roles`                                             | CRUD, get by id, users with a role                                                                                                                                                                        |
-| `groups`                                            | CRUD, subgroups, count, members                                                                                                                                                                           |
-| `identityProviders`                                 | CRUD, import config, export, reload keys, provider types, mappers, fine-grained permissions                                                                                                               |
-| `organizations`                                     | CRUD, count, members, membership type, invitations, identity provider links (26+, see notes)                                                                                                              |
-| `organizations.groups`                              | organization groups, members and role mappings (26.7+)                                                                                                                                                    |
-| `components`                                        | CRUD with `name` / `parent` / `type` filters                                                                                                                                                              |
-| `userStorageProvider`                               | list providers and mappers, sync users, sync mappers, unlink, remove imported users                                                                                                                       |
-| `authentication.flows`                              | CRUD, copy                                                                                                                                                                                                |
-| `authentication.flows.executions`                   | list, get, add execution or sub-flow, update requirement/priority, delete                                                                                                                                 |
+| Module                                              | Highlights                                                                                                                                                                                                                                                                 |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `realms`                                            | CRUD, partial import/export, events and admin events (+ config), keys, localization, default groups, client policies/profiles, client types, sessions (logout all, delete session), push revocation, SMTP test, client description converter, users management permissions |
+| `users`                                             | CRUD, count, search, credentials (reset, labels, order, disable types), required-action and verify e-mails, sessions and offline sessions, consents, federated identities, impersonation, logout, groups, user profile config and metadata, unmanaged attributes           |
+| `users.roleMappings` / `groups.roleMappings`        | realm and client role mappings: list, add, remove, available, composite                                                                                                                                                                                                    |
+| `attackDetection`                                   | brute-force status of a user, clear one or all                                                                                                                                                                                                                             |
+| `clients`                                           | CRUD, search, secrets and rotation, service account, installation, certificates (get, generate, download keystore, upload), client scopes, evaluate scopes (example tokens), sessions, cluster nodes, fine-grained permissions                                             |
+| `clients.roles`                                     | client roles: CRUD, users, groups, composites, permissions                                                                                                                                                                                                                 |
+| `clients.scopeMappings` / `clients.protocolMappers` | scope mappings and protocol mappers of a client                                                                                                                                                                                                                            |
+| `clients.authorization`                             | authorization services: resource server, resources, scopes, policies, permissions, evaluation, export                                                                                                                                                                      |
+| `clientScopes`                                      | CRUD, realm default/optional scopes, `scopeMappings`, `protocolMappers`, legacy `templates` (`/client-templates`)                                                                                                                                                          |
+| `clientRegistration`                                | initial access tokens, registration policy providers                                                                                                                                                                                                                       |
+| `roles`                                             | realm roles: CRUD, users, groups, composites, permissions. `roles.byId` addresses roles by id                                                                                                                                                                              |
+| `groups`                                            | CRUD, subgroups and children, group by path, count, members, fine-grained permissions                                                                                                                                                                                      |
+| `identityProviders`                                 | CRUD, import config, export, reload keys, upload certificate, provider types, mappers, permissions                                                                                                                                                                         |
+| `organizations`                                     | CRUD, count, members, membership type, invitations, identity provider links (26+, see notes)                                                                                                                                                                               |
+| `organizations.groups`                              | organization groups, members and role mappings (26.7+)                                                                                                                                                                                                                     |
+| `components`                                        | CRUD with filters, sub-component types                                                                                                                                                                                                                                     |
+| `userStorageProvider`                               | providers and mappers, sync users and mappers, unlink, remove imported users                                                                                                                                                                                               |
+| `authentication`                                    | authenticator, form and client providers, authenticator configs, config descriptions                                                                                                                                                                                       |
+| `authentication.flows` / `.executions`              | flows CRUD and copy; executions and sub-flows, configs, priority                                                                                                                                                                                                           |
+| `authentication.requiredActions`                    | register, update, priority, config (25+)                                                                                                                                                                                                                                   |
+| `workflows`                                         | workflows (26.4+ preview): CRUD as JSON or YAML, activate/deactivate, scheduled, migrate                                                                                                                                                                                   |
 
-All Keycloak representations are exported as types (`User`, `Client`, `Realm`, `Role`, `Group`, `UserProfileConfig`...), and the raw generated schemas are available as `KeycloakSchemas`.
+All Keycloak representations are exported as types (`User`, `Client`, `Realm`, `Role`, `Group`, `UserProfileConfig`, `AdminEvent`, `Workflow`...), and the raw generated schemas are available as `KeycloakSchemas`.
 
 ## Behaviour changes in Keycloak 24–26.8
 
@@ -108,13 +137,14 @@ All Keycloak representations are exported as types (`User`, `Client`, `Realm`, `
   - Client `secret` is masked for callers without `manage-clients`.
   - Role mapping endpoints return an empty list instead of `403` when the caller can't see them.
   - `IdentityProvider.organizationId` was replaced by organization links.
-  - The client certificate `generate`/`download` endpoints are deprecated, so this library does not wrap them.
+  - The client certificate `generate`/`download` endpoints are deprecated by Keycloak. They are still wrapped and marked `@deprecated`.
 - **Organizations (26+)** must be enabled on the realm (`organizationsEnabled: true`). Some endpoints are newer than 26.0:
   - `count`: 26.3+.
   - Invitations list/get/delete/resend: 26.5+.
   - Organization groups and member groups: 26.7+.
   - `updateMembershipType`, `updateIdentityProviderLink` and the `client_id` option of invitations: 26.8+.
 - **Authorization policies** are created and updated on `/policy/{type}` (the OpenAPI spec only lists the generic `/policy`, which the server cannot parse), so `type` is required in `createPolicy`, `createPermission` and `updatePolicy`.
+- **Previews:** `workflows` and `client-types` need their features enabled on the server (`--features=workflows,client-types`).
 - **No `/auth` path** since Keycloak 17 (Quarkus distribution).
 
 ## Development
@@ -134,13 +164,8 @@ Contributions are welcome. Please open an issue first for major changes. Then fo
 
 ## Roadmap
 
-- [x] Organizations API (Keycloak 26+).
-- [x] Client role mappings, scope mappings and client scopes.
-- [x] Identity providers and their mappers.
-- [x] Client authorization services.
-- [ ] Remaining realm-level endpoints (events, keys, attack detection, partial import/export, localization).
-- [ ] Roles by id and role composites; remaining user endpoints (credentials, sessions, consents, federated identities).
-- [ ] Workflows (26.8 preview) and Admin API v2 when they become stable.
+- [x] 100% of the Admin REST API (Keycloak 26.8.1 OpenAPI spec).
+- [ ] Admin API v2, once it is stable.
 
 ## License
 

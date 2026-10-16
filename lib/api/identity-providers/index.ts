@@ -3,7 +3,9 @@ import IdentityProvider from '../../types/identity-provider';
 import IdentityProviderMapper from '../../types/identity-provider-mapper';
 import IdentityProviderMapperType from '../../types/identity-provider-mapper-type';
 import ManagementPermission from '../../types/management-permission';
+import Certificate from '../../types/certificate';
 import ApiResponse from '../../types/api-response';
+import { CertificateUpload, certificateForm } from '../clients';
 
 export interface IdentityProviderListQueryParameters {
   briefRepresentation?: boolean;
@@ -51,6 +53,16 @@ export default class IdentityProviders {
    */
   importConfig(realm: string, data: Record<string, unknown>): Promise<ApiResponse<Record<string, string>>> {
     return this.http.post(path`/${realm}/identity-provider/import-config`, data);
+  }
+
+  /**
+   * Uploads a certificate (multipart) and returns it with the derived public key or JWKS, ready for the provider
+   * config (26+).
+   */
+  uploadCertificate(realm: string, upload: CertificateUpload): Promise<ApiResponse<Certificate>> {
+    return this.http.request('POST', path`/${realm}/identity-provider/upload-certificate`, {
+      data: certificateForm(upload),
+    });
   }
 
   /** Exports the provider's public broker configuration (for SAML, the SP descriptor XML). */

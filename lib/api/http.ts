@@ -10,6 +10,10 @@ export interface RequestOptions {
   params?: QueryParams;
   data?: unknown;
   headers?: Record<string, string>;
+  /** Use `'arraybuffer'` for binary downloads (keystores); `data` is then a `Buffer`. */
+  responseType?: 'json' | 'text' | 'arraybuffer';
+  /** Return the body of a `201` even when a `Location` header is present (default: the id from `Location`). */
+  keepBody?: boolean;
 }
 
 /** Hook invoked once when Keycloak answers 401, so the caller can drop its cached token before a retry. */
@@ -73,6 +77,7 @@ export class HttpClient {
         url: url + buildQuery(options.params),
         data: options.data,
         headers: options.headers,
+        responseType: options.responseType,
       });
 
     let response: AxiosResponse;
@@ -90,7 +95,7 @@ export class HttpClient {
       }
     }
 
-    return HttpClient.toApiResponse<T>(response);
+    return HttpClient.toApiResponse<T>(response, options.keepBody);
   }
 
   private static responseOf(error: unknown): AxiosResponse {
@@ -101,13 +106,26 @@ export class HttpClient {
     throw error;
   }
 
-  private static toApiResponse<T>(response: AxiosResponse): ApiResponse<T> {
+  private static toApiResponse<T>(response: AxiosResponse, keepBody = false): ApiResponse<T> {
     const { status, statusText } = response;
     if (status >= 200 && status < 300) {
       const location = response.headers?.location as string | undefined;
-      const data = status === 201 && location ? idFromLocation(location) : response.data;
+      const data = status === 201 && location && !keepBody ? idFromLocation(location) : response.data;
       return { success: true, status, statusText, data: (data === '' ? undefined : data) as T };
     }
-    return { success: false, status, statusText, error: response.data };
+    return { success: false, status, statusText, error: HttpClient.decodeError(response.data) };
+  }
+
+  /** Error bodies of binary requests arrive as a `Buffer`; turn them back into JSON or text. */
+  private static decodeError(data: unknown): unknown {
+    if (!Buffer.isBuffer(data)) {
+      return data;
+    }
+    const text = data.toString('utf8');
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
   }
 }

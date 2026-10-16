@@ -48,7 +48,14 @@ Rewritten for Keycloak 24, 25 and 26 (tested up to 26.8.1). Requires Node.js 20 
   - `scopeMappings`, `protocolMappers` and `authorization` (resource server, resources, scopes, policies, permissions, evaluation).
 - `users.roleMappings` and `groups.roleMappings`: realm and client role mappings, including available and composite roles.
 - Shared building blocks exported for custom owners: `RoleMappings`, `ScopeMappings`, `ProtocolMappers`.
-- Admin API coverage grew from about 14% to about 60% of the 26.8.1 OpenAPI operations.
+- `realms`: events and admin events (+ config), keys, localization, default groups, client policies/profiles, client types, partial import/export, logout all, delete session, push revocation, SMTP test, client description converter, users management permissions.
+- `users`: credentials, action/verify/reset e-mails, sessions, consents, federated identities, impersonation, logout, profile metadata, unmanaged attributes.
+- `attackDetection`, `clientRegistration` and `workflows` (26.4+ preview) modules.
+- `clients.roles` and `roles.byId`: client roles, composites, users, groups and permissions. Also role composites on realm roles.
+- `groups`: children, group by path, fine-grained permissions.
+- `authentication`: providers, authenticator configs, execution configs and priority, and `authentication.requiredActions`.
+- Client certificates (generate, keystore download as `Buffer`, multipart upload), identity provider certificate upload, component sub-types, legacy `clientScopes.templates`, generic authorization `/policy` and `/permission`.
+- Admin API coverage grew from about 14% to **100%** of the 415 operations in the 26.8.1 OpenAPI spec.
 - Exports: `KeycloakSchemas` (all generated schemas), `KEYCLOAK_SPEC_VERSION`, `USER_STORAGE_PROVIDER_TYPE`, `LDAP_STORAGE_MAPPER_TYPE`.
 - Unit tests (nock) and integration tests (Testcontainers) against Keycloak 24.0.5, 25.0.6 and 26.8.1, run in GitHub Actions.
 

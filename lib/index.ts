@@ -3,8 +3,10 @@ import axiosRetry, { exponentialDelay, isNetworkOrIdempotentRequestError } from 
 
 import { Credentials, KeycloakAuthError, TokenManager, TokenResponse } from './auth';
 import { HttpClient } from './api/http';
+import AttackDetection from './api/attack-detection';
 import Authentication from './api/authentication';
 import Clients from './api/clients';
+import ClientRegistration from './api/client-registration';
 import ClientScopes from './api/client-scopes';
 import Components from './api/components';
 import Groups from './api/groups';
@@ -14,6 +16,7 @@ import Realms from './api/realms';
 import Roles from './api/roles';
 import Users from './api/users';
 import UserStorageProvider from './api/user-storage-provider';
+import Workflows from './api/workflows';
 
 export interface ServerSettings {
   /** Server root URL, e.g. `https://sso.example.com` (append `/auth` only if the server uses that relative path). */
@@ -33,8 +36,10 @@ export default class KeycloakAPI {
   readonly config: ServerSettings;
   readonly httpClient: AxiosInstance;
 
+  readonly attackDetection: AttackDetection;
   readonly authentication: Authentication;
   readonly clients: Clients;
+  readonly clientRegistration: ClientRegistration;
   readonly clientScopes: ClientScopes;
   readonly components: Components;
   readonly groups: Groups;
@@ -44,6 +49,7 @@ export default class KeycloakAPI {
   readonly roles: Roles;
   readonly users: Users;
   readonly userStorageProvider: UserStorageProvider;
+  readonly workflows: Workflows;
 
   private readonly tokens: TokenManager;
 
@@ -81,8 +87,10 @@ export default class KeycloakAPI {
     });
 
     const http = new HttpClient(this.httpClient, () => this.tokens.invalidate());
+    this.attackDetection = new AttackDetection(http);
     this.authentication = new Authentication(http);
     this.clients = new Clients(http);
+    this.clientRegistration = new ClientRegistration(http);
     this.clientScopes = new ClientScopes(http);
     this.components = new Components(http);
     this.groups = new Groups(http);
@@ -92,6 +100,7 @@ export default class KeycloakAPI {
     this.roles = new Roles(http);
     this.users = new Users(http);
     this.userStorageProvider = new UserStorageProvider(http);
+    this.workflows = new Workflows(http);
   }
 
   /** Returns a valid access token for the configured credentials. Throws `KeycloakAuthError` on failure. */
@@ -130,7 +139,20 @@ function throttle(instance: AxiosInstance, requestsPerSecond: number): void {
 export { KeycloakAPI, KeycloakAuthError, HttpClient };
 export type { Credentials, TokenResponse };
 export type { GrantType } from './auth';
-export type { ClientListQueryParameters, ClientScopeKind, EvaluateScopesQueryParameters } from './api/clients';
+export type {
+  CertificateUpload,
+  ClientListQueryParameters,
+  ClientScopeKind,
+  EvaluateScopesQueryParameters,
+} from './api/clients';
+export { ClientScopeResource } from './api/client-scopes';
+export type {
+  AdminEventQueryParameters,
+  EventQueryParameters,
+  PartialImportOptions,
+  PartialImportResult,
+} from './api/realms';
+export type { WorkflowListQueryParameters } from './api/workflows';
 export type {
   PolicyListQueryParameters,
   ResourceListQueryParameters,
@@ -150,8 +172,10 @@ export type { MappingOwnerPath } from './api/role-mappings';
 export { default as ProtocolMappers } from './api/protocol-mappers';
 export type { ComponentListQueryParameters } from './api/components';
 export type { GroupListQueryParameters } from './api/groups';
-export type { RoleListQueryParameters } from './api/roles';
-export type { UserListQueryParameters, UserCountQueryParameters } from './api/users';
+export { RoleContainer, ClientRoles, RolesById } from './api/roles';
+export type { RoleListQueryParameters, RolePageQueryParameters } from './api/roles';
+export { default as RequiredActions } from './api/authentication/required-actions';
+export type { ActionEmailOptions, UserListQueryParameters, UserCountQueryParameters } from './api/users';
 export type { ActionType, DirectionType, SynchronizationResult } from './api/user-storage-provider';
 export { USER_STORAGE_PROVIDER_TYPE, LDAP_STORAGE_MAPPER_TYPE } from './api/user-storage-provider';
 export type { NewSubFlow } from './api/authentication/executions';
