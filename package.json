@@ -1,6 +1,6 @@
 {
   "name": "keycloak-api-ts",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "TypeScript client for the Keycloak Admin REST API: 100% of the endpoints, generated types, errors as values and automatic token renewal. Keycloak 24, 25 and 26; CommonJS and ESM.",
   "author": "Edmilson Santana <42233304+edmilsonss@users.noreply.github.com>",
   "repository": {
