@@ -127,6 +127,7 @@ export type { GroupListQueryParameters } from './api/groups';
 export type { RoleListQueryParameters } from './api/roles';
 export type { UserListQueryParameters, UserCountQueryParameters } from './api/users';
 export type { ActionType, DirectionType, SynchronizationResult } from './api/user-storage-provider';
+export { USER_STORAGE_PROVIDER_TYPE, LDAP_STORAGE_MAPPER_TYPE } from './api/user-storage-provider';
 export type { NewSubFlow } from './api/authentication/executions';
 export * from './types';
 export type { components as KeycloakSchemas } from './generated/keycloak-admin';
