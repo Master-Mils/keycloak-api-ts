@@ -1,11 +1,11 @@
 {
   "name": "keycloak-api-ts",
   "version": "1.0.0",
-  "description": "A Keycloak admin API client.",
+  "description": "TypeScript client for the Keycloak Admin REST API: 100% of the endpoints, generated types, errors as values and automatic token renewal. Keycloak 24, 25 and 26; CommonJS and ESM.",
   "author": "Edmilson Santana <42233304+edmilsonss@users.noreply.github.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Master-Mils/keycloak-api-ts.git"
+    "url": "git+https://github.com/Master-Mils/keycloak-api-ts.git"
   },
   "bugs": {
     "url": "https://github.com/Master-Mils/keycloak-api-ts/issues"
@@ -79,9 +79,26 @@
   },
   "keywords": [
     "keycloak",
-    "api",
-    "admin",
-    "oauth",
-    "oidc"
+    "keycloak-admin",
+    "keycloak-admin-client",
+    "keycloak-api",
+    "keycloak-rest-api",
+    "keycloak-client",
+    "admin-api",
+    "rest-api",
+    "api-client",
+    "sdk",
+    "typescript",
+    "nodejs",
+    "iam",
+    "identity",
+    "sso",
+    "oauth2",
+    "openid-connect",
+    "oidc",
+    "authentication",
+    "authorization",
+    "user-management",
+    "realm"
   ]
 }
